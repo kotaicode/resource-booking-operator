@@ -1,0 +1,27 @@
+# permissions for end users to view bookings.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: booking-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: resource-booking-operator
+    app.kubernetes.io/part-of: resource-booking-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: booking-viewer-role
+rules:
+- apiGroups:
+  - manager.my.domain
+  resources:
+  - bookings
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - manager.my.domain
+  resources:
+  - bookings/status
+  verbs:
+  - get
