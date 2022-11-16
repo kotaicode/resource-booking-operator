@@ -20,26 +20,25 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // ResourceSpec defines the desired state of Resource
 type ResourceSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of Resource. Edit resource_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Booked bool   `json:"booked"`
+	Tag    string `json:"tag"`
 }
 
 // ResourceStatus defines the observed state of Resource
 type ResourceStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	Instances int32  `json:"instances"`
+	Running   int32  `json:"running"`
+	Status    string `json:"status"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:printcolumn:JSONPath=".spec.booked",name="BOOKED",type="boolean"
+//+kubebuilder:printcolumn:JSONPath=".status.instances",name="INSTANCES",type="integer"
+//+kubebuilder:printcolumn:JSONPath=".status.running",name="RUNNING",type="integer"
+//+kubebuilder:printcolumn:JSONPath=".status.status",name="STATUS",type="string"
 
 // Resource is the Schema for the resources API
 type Resource struct {

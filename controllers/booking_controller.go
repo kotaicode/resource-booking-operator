@@ -18,6 +18,8 @@ package controllers
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -49,13 +51,53 @@ type BookingReconciler struct {
 func (r *BookingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	var resources managerv1.ResourceList
+	var booking managerv1.Booking
+	if err := r.Get(ctx, req.NamespacedName, &booking); err != nil {
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+	fmt.Println(req.NamespacedName)
 
-	return ctrl.Result{}, nil
+	bookStart, err := time.Parse(time.RFC3339, booking.Spec.StartAt)
+	if err != nil {
+		fmt.Println("TODO ERROR", err.Error())
+	}
+
+	bookEnd, err := time.Parse(time.RFC3339, booking.Spec.EndAt)
+	if err != nil {
+		fmt.Println("TODO ERROR", err.Error())
+	}
+
+	if err := r.List(context.Background(), &resources, client.MatchingFields{"spec.tag": booking.Spec.ResourceName}); err != nil {
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	if bookStart.Before(time.Now()) && time.Now().Before(bookEnd) {
+		booking.Status.Status = managerv1.BookingInProgress
+	} else if bookStart.Before(time.Now()) && bookEnd.Before(time.Now()) {
+		booking.Status.Status = managerv1.BookingFinished
+	} else {
+		booking.Status.Status = managerv1.BookingScheduled
+	}
+
+	err = r.Status().Update(ctx, &booking)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	if booking.Status.Status == managerv1.BookingFinished {
+		return ctrl.Result{}, nil
+	}
+
+	return ctrl.Result{RequeueAfter: time.Duration(time.Minute * 1)}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *BookingReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	mgr.GetFieldIndexer().IndexField(context.TODO(), &managerv1.Resource{}, "spec.tag", func(o client.Object) []string {
+		return []string{o.(*managerv1.Resource).Spec.Tag}
+	})
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&managerv1.Booking{}).
 		Complete(r)

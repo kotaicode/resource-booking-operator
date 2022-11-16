@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -25,6 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	managerv1 "my.domain/resource-booking/api/v1"
+	"my.domain/resource-booking/instances"
 )
 
 // ResourceReconciler reconciles a Resource object
@@ -49,9 +51,56 @@ type ResourceReconciler struct {
 func (r *ResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	var resource managerv1.Resource
+	if err := r.Get(ctx, req.NamespacedName, &resource); err != nil {
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
 
-	return ctrl.Result{}, nil
+	res := instances.Resource{NameTag: resource.Spec.Tag}
+	instanceStatus, _ := res.Status()
+
+	var running, available int32
+	var status string
+	for _, v := range instanceStatus {
+		available++
+		if v.InstanceStatusCode == instances.StatusRunning {
+			running++
+		}
+	}
+
+	if running == 0 {
+		status = "STOPPED"
+	} else if running == available {
+		status = "RUNNING"
+	} else {
+		status = "PENDING"
+	}
+
+	if resource.Spec.Booked {
+		// Just so I can test
+		if status == "STOPPED" {
+			res.Start()
+		}
+	} else {
+		// Just so I can test
+		if status == "RUNNING" {
+			res.Stop()
+		}
+	}
+
+	resource.Status = managerv1.ResourceStatus{
+		Instances: available,
+		Running:   running,
+		Status:    status,
+	}
+
+	err := r.Status().Update(ctx, &resource)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	// log.Info("reconciled resource")
+	return ctrl.Result{RequeueAfter: time.Duration(time.Second * 30)}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
