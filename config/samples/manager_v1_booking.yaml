@@ -9,4 +9,6 @@ metadata:
     app.kubernetes.io/created-by: resource-booking-operator
   name: booking-sample
 spec:
-  # TODO(user): Add fields here
+  resource_name: web
+  start_at: 2022-11-21T17:35:05Z
+  end_at: 2022-11-22T07:40:05Z

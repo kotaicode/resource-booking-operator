@@ -56,7 +56,6 @@ func (r *BookingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	if err := r.Get(ctx, req.NamespacedName, &booking); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	fmt.Println(req.NamespacedName)
 
 	bookStart, err := time.Parse(time.RFC3339, booking.Spec.StartAt)
 	if err != nil {
@@ -73,10 +72,13 @@ func (r *BookingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	if bookStart.Before(time.Now()) && time.Now().Before(bookEnd) {
+		updateResource(r, ctx, &resources, true)
 		booking.Status.Status = managerv1.BookingInProgress
 	} else if bookStart.Before(time.Now()) && bookEnd.Before(time.Now()) {
+		updateResource(r, ctx, &resources, false)
 		booking.Status.Status = managerv1.BookingFinished
 	} else {
+		updateResource(r, ctx, &resources, false)
 		booking.Status.Status = managerv1.BookingScheduled
 	}
 
@@ -90,6 +92,17 @@ func (r *BookingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	return ctrl.Result{RequeueAfter: time.Duration(time.Minute * 1)}, nil
+}
+
+func updateResource(r *BookingReconciler, ctx context.Context, resources *managerv1.ResourceList, booked bool) {
+	for _, rs := range resources.Items {
+		rs.Spec.Booked = booked
+
+		err := r.Update(ctx, &rs)
+		if err != nil {
+			fmt.Println("TODO")
+		}
+	}
 }
 
 // SetupWithManager sets up the controller with the Manager.

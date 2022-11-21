@@ -48,6 +48,7 @@ func (r *Resource) Start() error {
 	})
 	if err != nil {
 		// TODO: Log
+		fmt.Println("TODO LOG", err.Error())
 		return err
 	}
 
@@ -81,6 +82,7 @@ func (r *Resource) Status() ([]ResourceStatus, error) {
 		})
 		if err != nil {
 			// TODO: Log
+			fmt.Println("TODO LOG", err.Error())
 			return rst, err
 		}
 
