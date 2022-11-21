@@ -6,7 +6,7 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - manager.my.domain
+  - manager.kotaico.de
   resources:
   - bookings
   verbs:
@@ -18,13 +18,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - manager.my.domain
+  - manager.kotaico.de
   resources:
   - bookings/finalizers
   verbs:
   - update
 - apiGroups:
-  - manager.my.domain
+  - manager.kotaico.de
   resources:
   - bookings/status
   verbs:
@@ -32,7 +32,7 @@ rules:
   - patch
   - update
 - apiGroups:
-  - manager.my.domain
+  - manager.kotaico.de
   resources:
   - resources
   verbs:
@@ -44,13 +44,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - manager.my.domain
+  - manager.kotaico.de
   resources:
   - resources/finalizers
   verbs:
   - update
 - apiGroups:
-  - manager.my.domain
+  - manager.kotaico.de
   resources:
   - resources/status
   verbs:

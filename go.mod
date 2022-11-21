@@ -1,4 +1,4 @@
-module my.domain/resource-booking
+module github.com/kotaicode/resource-booking-operator
 
 go 1.19
 

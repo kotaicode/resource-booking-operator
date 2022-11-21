@@ -26,7 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	managerv1 "my.domain/resource-booking/api/v1"
+	managerv1 "github.com/kotaicode/resource-booking-operator/api/v1"
 )
 
 // BookingReconciler reconciles a Booking object
@@ -35,9 +35,9 @@ type BookingReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=manager.my.domain,resources=bookings,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=manager.my.domain,resources=bookings/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=manager.my.domain,resources=bookings/finalizers,verbs=update
+//+kubebuilder:rbac:groups=manager.kotaico.de,resources=bookings,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=manager.kotaico.de,resources=bookings/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=manager.kotaico.de,resources=bookings/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.

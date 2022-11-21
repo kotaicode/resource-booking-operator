@@ -1,25 +1,25 @@
-domain: my.domain
+domain: kotaico.de
 layout:
 - go.kubebuilder.io/v3
 projectName: resource-booking-operator
-repo: my.domain/resource-booking
+repo: github.com/kotaicode/resource-booking-operator
 resources:
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
-  domain: my.domain
+  domain: kotaico.de
   group: manager
   kind: Resource
-  path: my.domain/resource-booking/api/v1
+  path: github.com/kotaicode/resource-booking-operator/api/v1
   version: v1
 - api:
     crdVersion: v1
     namespaced: true
   controller: true
-  domain: my.domain
+  domain: kotaico.de
   group: manager
   kind: Booking
-  path: my.domain/resource-booking/api/v1
+  path: github.com/kotaicode/resource-booking-operator/api/v1
   version: v1
 version: "3"

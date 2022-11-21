@@ -5,9 +5,9 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.9.2
   creationTimestamp: null
-  name: resources.manager.my.domain
+  name: resources.manager.kotaico.de
 spec:
-  group: manager.my.domain
+  group: manager.kotaico.de
   names:
     kind: Resource
     listKind: ResourceList

@@ -11,21 +11,21 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: resource-editor-role
 rules:
-- apiGroups:
-  - manager.my.domain
-  resources:
-  - resources
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - manager.my.domain
-  resources:
-  - resources/status
-  verbs:
-  - get
+  - apiGroups:
+      - manager.kotaico.de
+    resources:
+      - resources
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - manager.kotaico.de
+    resources:
+      - resources/status
+    verbs:
+      - get

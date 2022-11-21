@@ -1,4 +1,4 @@
-apiVersion: manager.my.domain/v1
+apiVersion: manager.kotaico.de/v1
 kind: Booking
 metadata:
   labels:

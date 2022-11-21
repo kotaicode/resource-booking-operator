@@ -11,17 +11,17 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: booking-viewer-role
 rules:
-- apiGroups:
-  - manager.my.domain
-  resources:
-  - bookings
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - manager.my.domain
-  resources:
-  - bookings/status
-  verbs:
-  - get
+  - apiGroups:
+      - manager.kotaico.de
+    resources:
+      - bookings
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - manager.kotaico.de
+    resources:
+      - bookings/status
+    verbs:
+      - get

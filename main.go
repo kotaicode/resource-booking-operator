@@ -31,8 +31,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	managerv1 "my.domain/resource-booking/api/v1"
-	"my.domain/resource-booking/controllers"
+	managerv1 "github.com/kotaicode/resource-booking-operator/api/v1"
+	"github.com/kotaicode/resource-booking-operator/controllers"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -71,7 +71,7 @@ func main() {
 		Port:                   9443,
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "d042a3ce.my.domain",
+		LeaderElectionID:       "d042a3ce.kotaico.de",
 		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
 		// when the Manager ends. This requires the binary to immediately end when the
 		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly

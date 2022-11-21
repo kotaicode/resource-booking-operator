@@ -30,7 +30,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	managerv1 "my.domain/resource-booking/api/v1"
+	managerv1 "github.com/kotaicode/resource-booking-operator/api/v1"
 	//+kubebuilder:scaffold:imports
 )
 
