@@ -1,8 +1,7 @@
 # Resource booking operator
-> Additional information or tagline
+> Control and schedule cloud resources using custom Kubernetes operator
 
-A brief description of your project, what it is used for and how does life get
-awesome when someone starts to use it.
+Manage your compute instances, or explore this general example on how a booking system for cloud computing resources could work, using Kubernetes custom resource operator.
 
 ### Prerequisites
 - Docker
