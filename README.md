@@ -22,6 +22,11 @@ TODO: Provides friendly interface to manage cloud resources through bookings.
 
 ## Usage
 
+Start the operator.
+```
+make run
+```
+
 There are two custom resources - resources and bookings. Their template yamls which can be applied directly to the cluster are in the `config/samples` directory:
 
 <details><summary>config/samples/manager_v1_resource.yaml</summary>
@@ -73,8 +78,8 @@ spec:
 To start managing instances, you must change the template yamls according to the instance tag you want to manage and the time slot for which they will be booked, and finally - apply both of them to the cluster:
 
 ```
-$ kubectl apply -f config/samples/manager_v1_resource.yaml
-$ kubectl apply -f config/samples/manager_v1_booking.yaml
+kubectl apply -f config/samples/manager_v1_resource.yaml
+kubectl apply -f config/samples/manager_v1_booking.yaml
 ```
 
 TODO: Auto discovery feature. Make command that runs the app with flag that discovers resources and creates them in the cluster.
