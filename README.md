@@ -6,7 +6,8 @@ awesome when someone starts to use it.
 
 ### Prerequisites
 - Docker
-- Minikube
+- Minikube/Kubernetes cluster
+- Kubebuilder
 
 ## Getting started
 
@@ -17,10 +18,14 @@ make install
 ```
 
 ## How it works
+The custom resource operator provides friendly interface to manage cloud resources through bookings.  
+You start by grouping your cloud instances under a common resource tagname, and then creating a custom resource with that tag on your cluster. Once you have resources, you can manage their state through bookings that have a tag name, start, and end time.
 
-TODO: Provides friendly interface to manage cloud resources through bookings.
+Example yamls can be seen on `config/samples` or in the [usage section](#usage).
 
 ## Usage
+
+TODO: How to tag instances to make them visible as a resource
 
 Start the operator.
 ```
@@ -82,10 +87,7 @@ kubectl apply -f config/samples/manager_v1_resource.yaml
 kubectl apply -f config/samples/manager_v1_booking.yaml
 ```
 
-TODO: Auto discovery feature. Make command that runs the app with flag that discovers resources and creates them in the cluster.
-
 ## Development
-
-TODO: Kubebuilder docs, make and make manifests commands.
+Kubebuilder is hard dependency of the project, so one of the best guides to extending and playing with this codebase is the [Kubebuilder book](https://book.kubebuilder.io/).
 
 ## Roadmap
