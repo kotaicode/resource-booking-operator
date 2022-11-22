@@ -1,5 +1,5 @@
-// Package instances is a thin wrapper around the EC2 Client. Along with that it provides a few additions, like grabbing the instance IDs that have a predefined tag that we use to identify resources.
-package instances
+// Package ec2 is a thin wrapper around the EC2 Client. Along with that it provides a few additions, like grabbing the instance IDs that have a predefined tag that we use to identify resources.
+package ec2
 
 import (
 	"fmt"

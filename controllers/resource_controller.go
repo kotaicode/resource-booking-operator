@@ -26,7 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	managerv1 "github.com/kotaicode/resource-booking-operator/api/v1"
-	"github.com/kotaicode/resource-booking-operator/instances"
+	"github.com/kotaicode/resource-booking-operator/ec2"
 )
 
 // ResourceReconciler reconciles a Resource object
@@ -56,14 +56,14 @@ func (r *ResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	res := instances.Resource{NameTag: resource.Spec.Tag}
+	res := ec2.Resource{NameTag: resource.Spec.Tag}
 	instanceStatus, _ := res.Status()
 
 	var running, available int32
 	var status string
 	for _, v := range instanceStatus {
 		available++
-		if v.InstanceStatusCode == instances.StatusRunning {
+		if v.InstanceStatusCode == ec2.StatusRunning {
 			running++
 		}
 	}
