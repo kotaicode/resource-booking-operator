@@ -11,20 +11,24 @@ awesome when someone starts to use it.
 
 ## Getting started
 
-TODO: Setting minikube or target cluster
+To play with the operator against a default local cluster, we first need to install the custom resource definitions:
 
 ```
 make install
 ```
 
+Next, refer to [Usage](#usage) and [Development](#development).
+
 ## How it works
 The custom resource operator provides friendly interface to manage cloud resources through bookings.  
+
 You start by grouping your cloud instances under a common resource tagname, and then creating a custom resource with that tag on your cluster. Once you have resources, you can manage their state through bookings that have a tag name, start, and end time.
 
-Example yamls can be seen on `config/samples` or in the [usage section](#usage).
+Example yamls can be seen in the `config/samples` directory or in the [usage section](#usage).
 
 ## Usage
 
+TODO: AWS client config
 TODO: How to tag instances to make them visible as a resource
 
 Start the operator.
