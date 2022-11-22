@@ -1,0 +1,13 @@
+apiVersion: manager.kotaico.de/v1
+kind: Resource
+metadata:
+  labels:
+    app.kubernetes.io/name: resource
+    app.kubernetes.io/instance: analytics
+    app.kubernetes.io/part-of: resource-booking-operator
+    app.kuberentes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: resource-booking-operator
+  name: analytics
+spec:
+  tag: analytics
+  booked: false

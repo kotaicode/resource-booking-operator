@@ -1,0 +1,14 @@
+apiVersion: manager.kotaico.de/v1
+kind: Booking
+metadata:
+  labels:
+    app.kubernetes.io/name: booking
+    app.kubernetes.io/instance: booking-sample
+    app.kubernetes.io/part-of: resource-booking-operator
+    app.kuberentes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: resource-booking-operator
+  name: booking-sample
+spec:
+  resource_name: web
+  start_at: 2022-11-21T17:35:05Z
+  end_at: 2022-11-22T07:40:05Z
