@@ -3,6 +3,14 @@ package clients
 
 import (
 	"errors"
+	"path/filepath"
+
+	managerv1 "github.com/kotaicode/resource-booking-operator/api/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/util/homedir"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -41,4 +49,28 @@ func ResourceFactory(resType, tag string) (CloudResource, error) {
 	}
 
 	return resource, nil
+}
+
+// TODO: Bring back the EC2 back in this package and make it a struct or something?
+
+func GetK8sClient() (client.Client, error) {
+	// TODO Inspire from the "using k8s client outside of cluster"
+	// TODO Test the kubeconfig flag here?
+	cfg, err := clientcmd.BuildConfigFromFlags("", filepath.Join(homedir.HomeDir(), ".kube", "config"))
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// TODO Try with and without that
+	scheme := runtime.NewScheme()
+	utilruntime.Must(managerv1.AddToScheme(scheme))
+
+	clientOpts := client.Options{Scheme: scheme}
+
+	c, err := client.New(cfg, clientOpts)
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil
 }
