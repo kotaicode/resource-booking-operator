@@ -12,6 +12,6 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: golangci-lint
-        uses: reviewdog/action-golangci-lint@vv2.2.2
+        uses: reviewdog/action-golangci-lint@v2.2.2
         with:
           level: warning
