@@ -15,4 +15,5 @@ jobs:
         uses: reviewdog/action-golangci-lint@v2
         with:
           golangci_lint_flags: "--timeout=3m"
+          filter_mode: nofilter
           fail_on_error: true
