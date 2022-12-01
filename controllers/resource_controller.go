@@ -26,7 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	managerv1 "github.com/kotaicode/resource-booking-operator/api/v1"
-	"github.com/kotaicode/resource-booking-operator/ec2"
+	"github.com/kotaicode/resource-booking-operator/clients/ec2"
 )
 
 // ResourceReconciler reconciles a Resource object
