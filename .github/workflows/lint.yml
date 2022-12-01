@@ -9,9 +9,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: golangci-lint
-        uses: reviewdog/action-golangci-lint@v2.2.2
+        uses: reviewdog/action-golangci-lint@v2
         with:
+          golangci_lint_flags: "--timeout=3m"
           level: warning
