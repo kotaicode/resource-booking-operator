@@ -58,7 +58,7 @@ var _ = Describe("Resource controller", func() {
 				return true
 			}, timeout, interval).Should(BeTrue())
 
-			Expect(createdResource.Spec.Tag).Should(Equal("chep mostly"))
+			Expect(createdResource.Spec.Tag).Should(Equal(ResourceTag))
 		})
 	})
 })
