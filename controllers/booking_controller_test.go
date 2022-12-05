@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -20,19 +21,29 @@ var _ = Describe("Booking controller", func() {
 		BookingName         = "test-resource"
 		BookingNamespace    = "default"
 		BookingResourceName = "analytics"
-		BookingStart        = "2022-11-21T17:35:05Z"
-		BookingEnd          = "2022-11-22T07:40:05Z"
-
-		timeout  = time.Second * 10
-		duration = time.Second * 10
-		interval = time.Millisecond * 250
+		timeout             = time.Second * 10
+		duration            = time.Second * 10
+		interval            = time.Millisecond * 250
 	)
 
-	Context("When updating CronJob Status", func() { // TODO
-		It("Should increase CronJob Status.Active count when new Jobs are created", func() { // TODO
+	// Keep the format visible for easier debugging and just increment with an year
+	var (
+		BookingStart = fmt.Sprintf("%d-01-01T00:00:00Z", time.Now().AddDate(1, 0, 0).Year())
+		BookingEnd   = fmt.Sprintf("%d-01-02T00:00:00Z", time.Now().AddDate(1, 0, 0).Year())
+	)
+
+	Context("When creating a booking", func() {
+		It("Should update booking status", func() {
 			By("By creating a new Booking")
 			ctx := context.Background()
-			resource := &managerv1.Booking{
+
+			BookingSpec := managerv1.BookingSpec{
+				StartAt:      BookingStart,
+				EndAt:        BookingEnd,
+				ResourceName: BookingResourceName,
+			}
+
+			booking := &managerv1.Booking{
 				TypeMeta: metav1.TypeMeta{
 					APIVersion: "manager.kotaico.de/v1",
 					Kind:       "Booking",
@@ -41,13 +52,9 @@ var _ = Describe("Booking controller", func() {
 					Name:      BookingName,
 					Namespace: BookingNamespace,
 				},
-				Spec: managerv1.BookingSpec{
-					StartAt:      BookingStart,
-					EndAt:        BookingEnd,
-					ResourceName: BookingResourceName,
-				},
+				Spec: BookingSpec,
 			}
-			Expect(k8sClient.Create(ctx, resource)).Should(Succeed())
+			Expect(k8sClient.Create(ctx, booking)).Should(Succeed())
 
 			// Check that the spec we passed are matching
 			resourceLookupKey := types.NamespacedName{Name: BookingName, Namespace: BookingNamespace}
@@ -61,7 +68,16 @@ var _ = Describe("Booking controller", func() {
 				return true
 			}, timeout, interval).Should(BeTrue())
 
-			Expect(createdBooking.Spec.ResourceName).Should(Equal(BookingResourceName))
+			Expect(createdBooking.Spec).Should(Equal(BookingSpec))
+
+			By("By checking if the booking status is update")
+			Consistently(func() (string, error) {
+				err := k8sClient.Get(ctx, resourceLookupKey, createdBooking)
+				if err != nil {
+					return "", err
+				}
+				return createdBooking.Status.Status, nil
+			}, duration, interval).Should(Equal(managerv1.BookingScheduled), "should show that the booking status is scheduled")
 		})
 	})
 })

@@ -46,7 +46,7 @@ var _ = Describe("Resource controller", func() {
 			}
 			Expect(k8sClient.Create(ctx, resource)).Should(Succeed())
 
-			// Check that the spec we passed are matching
+			// Check that the spec we passed is matching
 			resourceLookupKey := types.NamespacedName{Name: ResourceName, Namespace: ResourceNamespace}
 			createdResource := &managerv1.Resource{}
 
@@ -59,6 +59,12 @@ var _ = Describe("Resource controller", func() {
 			}, timeout, interval).Should(BeTrue())
 
 			Expect(createdResource.Spec.Tag).Should(Equal(ResourceTag))
+
+			Expect(createdResource.Status).Should(Equal(managerv1.ResourceStatus{
+				Instances: 0,
+				Running:   0,
+				Status:    "",
+			}))
 		})
 	})
 })
