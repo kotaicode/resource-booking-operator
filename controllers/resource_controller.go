@@ -59,7 +59,10 @@ func (r *ResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	res := ec2.Resource{NameTag: resource.Spec.Tag}
-	instanceStatus, _ := res.Status()
+	instanceStatus, err := res.Status()
+	if err != nil {
+		log.Error(err, "Error getting resource status")
+	}
 
 	var running, available int32
 	var status string
@@ -102,7 +105,7 @@ func (r *ResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		Status:    status,
 	}
 
-	err := r.Status().Update(ctx, &resource)
+	err = r.Status().Update(ctx, &resource)
 	if err != nil {
 		log.Error(err, "Error updating resource status")
 		return ctrl.Result{}, err
