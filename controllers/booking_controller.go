@@ -114,11 +114,17 @@ func updateResource(r *BookingReconciler, ctx context.Context, resources *manage
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *BookingReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	mgr.GetFieldIndexer().IndexField(context.TODO(), &managerv1.Resource{}, "spec.tag", func(o client.Object) []string {
-		return []string{o.(*managerv1.Resource).Spec.Tag}
-	})
+    ctx := context.TODO()
+    log := log.FromContext(ctx)
 
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&managerv1.Booking{}).
-		Complete(r)
+    err := mgr.GetFieldIndexer().IndexField(ctx, &managerv1.Resource{}, "spec.tag", func(o client.Object) []string {
+        return []string{o.(*managerv1.Resource).Spec.Tag}
+    })
+    if err != nil {
+        log.Error(err, "Error indexing booking field")
+    }
+
+    return ctrl.NewControllerManagedBy(mgr).
+        For(&managerv1.Booking{}).
+        Complete(r)
 }
