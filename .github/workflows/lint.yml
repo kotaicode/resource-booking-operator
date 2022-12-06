@@ -1,0 +1,19 @@
+name: Lint
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: golangci-lint
+        uses: reviewdog/action-golangci-lint@v2
+        with:
+          golangci_lint_flags: "--timeout=3m"
+          filter_mode: nofilter
+          fail_on_error: true
