@@ -42,13 +42,15 @@ var EC2Client *ec2.EC2 = ec2.New(mySession)
 
 // Start makes a call through the EC2 client to start the instances from a given resource by their IDs
 func (r *Resource) Start() error {
-	instanceIds, _ := r.getInstanceIds(r.NameTag)
-	_, err := EC2Client.StartInstances(&ec2.StartInstancesInput{
+	instanceIds, err := r.getInstanceIds(r.NameTag)
+	if err != nil {
+		return err
+	}
+
+	_, err = EC2Client.StartInstances(&ec2.StartInstancesInput{
 		InstanceIds: instanceIds,
 	})
 	if err != nil {
-		// TODO: Log
-		fmt.Println("TODO LOG", err.Error())
 		return err
 	}
 
@@ -57,32 +59,38 @@ func (r *Resource) Start() error {
 
 // Stop makes a call through the EC2 client to stop the instances that belong to the given resource
 func (r *Resource) Stop() error {
-	instanceIds, _ := r.getInstanceIds(r.NameTag)
-	_, err := EC2Client.StopInstances(&ec2.StopInstancesInput{
+	instanceIds, err := r.getInstanceIds(r.NameTag)
+	if err != nil {
+		return err
+	}
+
+	_, err = EC2Client.StopInstances(&ec2.StopInstancesInput{
 		InstanceIds: instanceIds,
 	})
 	if err != nil {
-		// TODO: Log
 		return err
 	}
 
 	return nil
 }
 
-// Status returns the current summary of a given resource instance statuses. It makes a call through the EC2 client with a given set of instance IDs and summarises their status (active vs running)
+// Status returns the current summary of a given resource instance statuses.
+// It makes a call through the EC2 client with a given set of instance IDs and summarises their status (active vs running)
 func (r *Resource) Status() ([]ResourceStatus, error) {
+	includeAll := true
 	var rst []ResourceStatus
 
 	if !r.IsArchived {
-		includeAll := true
-		instanceIds, _ := r.getInstanceIds(r.NameTag)
+		instanceIds, err := r.getInstanceIds(r.NameTag)
+		if err != nil {
+			return rst, err
+		}
+
 		resp, err := EC2Client.DescribeInstanceStatus(&ec2.DescribeInstanceStatusInput{
 			IncludeAllInstances: &includeAll,
 			InstanceIds:         instanceIds,
 		})
 		if err != nil {
-			// TODO: Log
-			fmt.Println("TODO LOG", err.Error())
 			return rst, err
 		}
 
@@ -104,6 +112,7 @@ func (r *Resource) Status() ([]ResourceStatus, error) {
 func (r *Resource) getInstanceIds(nameTag string) ([]*string, error) {
 	var instanceIds []*string
 
+	// Prepare filters
 	tagKey := fmt.Sprintf("tag:%s", defaultTagKey)
 	nameFilter := &ec2.Filter{
 		Name:   &tagKey,
@@ -114,7 +123,6 @@ func (r *Resource) getInstanceIds(nameTag string) ([]*string, error) {
 		Filters: []*ec2.Filter{nameFilter},
 	})
 	if err != nil {
-		// TODO: Log
 		return nil, err
 	}
 

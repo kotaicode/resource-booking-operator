@@ -49,10 +49,12 @@ type ResourceReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
 func (r *ResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	log := log.FromContext(ctx)
+	log.Info("Reconciling resource")
 
 	var resource managerv1.Resource
 	if err := r.Get(ctx, req.NamespacedName, &resource); err != nil {
+		log.Error(err, "Error getting resource")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
@@ -79,12 +81,18 @@ func (r *ResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if resource.Spec.Booked {
 		// Just so I can test
 		if status == "STOPPED" {
-			res.Start()
+			err := res.Start()
+			if err != nil {
+				log.Error(err, "Error starting resource instances")
+			}
 		}
 	} else {
 		// Just so I can test
 		if status == "RUNNING" {
-			res.Stop()
+			err := res.Stop()
+			if err != nil {
+				log.Error(err, "Error stopping resource instances")
+			}
 		}
 	}
 
@@ -96,6 +104,7 @@ func (r *ResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	err := r.Status().Update(ctx, &resource)
 	if err != nil {
+		log.Error(err, "Error updating resource status")
 		return ctrl.Result{}, err
 	}
 

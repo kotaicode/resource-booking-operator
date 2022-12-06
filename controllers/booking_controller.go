@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -49,25 +48,28 @@ type BookingReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
 func (r *BookingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	log := log.FromContext(ctx)
+	log.Info("Reconciling resource")
 
 	var resources managerv1.ResourceList
 	var booking managerv1.Booking
 	if err := r.Get(ctx, req.NamespacedName, &booking); err != nil {
+		log.Error(err, "Error getting booking")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	bookStart, err := time.Parse(time.RFC3339, booking.Spec.StartAt)
 	if err != nil {
-		fmt.Println("TODO ERROR", err.Error())
+		log.Error(err, "Error parsing booking start")
 	}
 
 	bookEnd, err := time.Parse(time.RFC3339, booking.Spec.EndAt)
 	if err != nil {
-		fmt.Println("TODO ERROR", err.Error())
+		log.Error(err, "Error parsing booking end")
 	}
 
 	if err := r.List(context.Background(), &resources, client.MatchingFields{"spec.tag": booking.Spec.ResourceName}); err != nil {
+		log.Error(err, "Error listing bookings")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
@@ -82,12 +84,15 @@ func (r *BookingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		booking.Status.Status = managerv1.BookingScheduled
 	}
 
+	log.Info("Updating booking status", "status", booking.Status.Status)
 	err = r.Status().Update(ctx, &booking)
 	if err != nil {
+		log.Error(err, "Error updating booking status")
 		return ctrl.Result{}, err
 	}
 
 	if booking.Status.Status == managerv1.BookingFinished {
+		log.Info("Booking finished")
 		return ctrl.Result{}, nil
 	}
 
@@ -95,12 +100,14 @@ func (r *BookingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 }
 
 func updateResource(r *BookingReconciler, ctx context.Context, resources *managerv1.ResourceList, booked bool) {
+	log := log.FromContext(ctx)
+
 	for _, rs := range resources.Items {
 		rs.Spec.Booked = booked
 
 		err := r.Update(ctx, &rs)
 		if err != nil {
-			fmt.Println("TODO")
+			log.Error(err, "Error updating resource spec")
 		}
 	}
 }
