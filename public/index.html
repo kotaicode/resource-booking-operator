@@ -1,0 +1,103 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=&family=Lato:wght@300;500;900&display=swap" rel="stylesheet">
+    <meta charset="utf-8">
+    <title></title>
+    <style>
+        body {
+            width: auto;
+            color: #538BDB;
+            background: #fff;
+            font-family: 'Lato', sans-serif;
+        }
+
+        .wrapper {
+            max-width: 980px;
+            margin: 0 auto;
+        }
+
+        .title-group {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .title-group > h1 {
+            font-size: 5em;
+            font-weight: 400;
+            color: #fff;
+            -webkit-text-stroke: 3px #538BDB;
+            text-stroke: 3px #538BDB;
+        }
+
+        .title-group > h3 {
+            font-size: 1.8em;
+            font-weight: 500;
+        }
+
+        .actions-box {
+            display: flex;
+            justify-content: center;
+        }
+
+        .video-wrapper {
+            padding: 0 1%;
+            border-radius: 10px;
+            text-align: center;
+            background: #282C36;
+        }
+
+        .video {
+            width: 98%;
+            margin: 20px auto;
+            border: solid 1px #203148;
+        }
+
+        .actions-box > a {
+            font-family: inherit;
+            font-size: 1.5em;
+            margin: 40px 1em 0;
+            padding: 10px 15px;
+            color: #fff;
+            background: #538BDB;
+            border: 0;
+            font-weight: 400;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #404346;
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            body {
+                background: #fff;
+            }
+        } 
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <hgroup class="title-group">
+            <h1 class="title">Resource Booking Operator</h1>
+            <h3 class="subtitle">Manage cloud resources using Kubernetes custom operator</h3>
+        </hgroup>
+
+        <div class="video-wrapper">
+            <video class="video" autoplay muted loop>
+                <source src="screenshare.mp4" type="video/mp4">
+                Your browser does not support video tag
+            </video>
+        </div>
+
+        <div class="actions-box">
+            <a href="#">Get Started</a>
+        </div>
+    </div>
+</body>
+</html>
