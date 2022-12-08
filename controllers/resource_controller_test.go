@@ -26,10 +26,10 @@ var _ = Describe("Resource controller", func() {
 		interval = time.Millisecond * 250
 	)
 
-	Context("When updating CronJob Status", func() { // TODO
-		It("Should increase CronJob Status.Active count when new Jobs are created", func() { // TODO
-			By("By creating a new Resource")
-			ctx := context.Background()
+	ctx := context.Background()
+
+	Context("TODO", func() {
+		BeforeEach(func() {
 			resource := &managerv1.Resource{
 				TypeMeta: metav1.TypeMeta{
 					APIVersion: "manager.kotaico.de/v1",
@@ -45,7 +45,10 @@ var _ = Describe("Resource controller", func() {
 				},
 			}
 			Expect(k8sClient.Create(ctx, resource)).Should(Succeed())
+		})
 
+		It("TODO", func() {
+			By("By creating a new Resource")
 			// Check that the spec we passed is matching
 			resourceLookupKey := types.NamespacedName{Name: ResourceName, Namespace: ResourceNamespace}
 			createdResource := &managerv1.Resource{}
@@ -66,5 +69,6 @@ var _ = Describe("Resource controller", func() {
 				Status:    "",
 			}))
 		})
+		// TODO: THe case where booked is true
 	})
 })
