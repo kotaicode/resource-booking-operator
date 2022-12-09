@@ -21,8 +21,8 @@ var _ = Describe("Booking controller", func() {
 		BookingName         = "test-resource"
 		BookingNamespace    = "default"
 		BookingResourceName = "analytics"
-		timeout             = time.Second * 10
-		duration            = time.Second * 10
+		timeout             = time.Second * 50
+		duration            = time.Second * 5
 		interval            = time.Millisecond * 250
 	)
 
@@ -31,8 +31,8 @@ var _ = Describe("Booking controller", func() {
 		ScheduledBookingStart = fmt.Sprintf("%d-01-01T00:00:00Z", time.Now().AddDate(1, 0, 0).Year())
 		ScheduledBookingEnd   = fmt.Sprintf("%d-01-02T00:00:00Z", time.Now().AddDate(1, 0, 0).Year())
 
-		InProgressBookingStart        = fmt.Sprintf("%d-01-01T00:00:00Z", time.Now().Year())
-		InProgressScheduledBookingEnd = fmt.Sprintf("%d-01-01T00:00:00Z", time.Now().AddDate(1, 0, 0).Year())
+		InProgressBookingStart = fmt.Sprintf("%d-01-01T00:00:00Z", time.Now().Year())
+		InProgressBookingEnd   = fmt.Sprintf("%d-01-01T00:00:00Z", time.Now().AddDate(1, 0, 0).Year())
 
 		FinishedBookingStart = fmt.Sprintf("%d-01-01T00:00:00Z", time.Now().AddDate(-1, 0, 0).Year())
 		FinishedBookingEnd   = fmt.Sprintf("%d-01-02T00:00:00Z", time.Now().AddDate(-1, 0, 0).Year())
@@ -62,7 +62,6 @@ var _ = Describe("Booking controller", func() {
 				},
 				Spec: bookingSpec,
 			}
-			Expect(k8sClient.Create(ctx, booking)).Should(Succeed())
 		})
 
 		AfterEach(func() {
@@ -87,7 +86,8 @@ var _ = Describe("Booking controller", func() {
 				return true
 			}, timeout, interval).Should(BeTrue())
 
-			Expect(createdBooking.Spec).Should(Equal(bookingSpec))
+			Expect(createdBooking.Spec.StartAt).Should(Equal(ScheduledBookingStart))
+			Expect(createdBooking.Spec.EndAt).Should(Equal(ScheduledBookingEnd))
 
 			By("By checking if the booking status is updated")
 			Consistently(func() (string, error) {
@@ -103,7 +103,7 @@ var _ = Describe("Booking controller", func() {
 			By("By creating a new Booking")
 
 			booking.Spec.StartAt = InProgressBookingStart
-			booking.Spec.EndAt = InProgressScheduledBookingEnd
+			booking.Spec.EndAt = InProgressBookingEnd
 			Expect(k8sClient.Create(ctx, booking)).Should(Succeed())
 
 			err := k8sClient.Update(ctx, booking)
@@ -123,7 +123,8 @@ var _ = Describe("Booking controller", func() {
 				return true
 			}, timeout, interval).Should(BeTrue())
 
-			Expect(createdBooking.Spec).Should(Equal(bookingSpec))
+			Expect(createdBooking.Spec.StartAt).Should(Equal(InProgressBookingStart))
+			Expect(createdBooking.Spec.EndAt).Should(Equal(InProgressBookingEnd))
 
 			By("By checking if the booking status is updated")
 			Consistently(func() (string, error) {
@@ -132,7 +133,7 @@ var _ = Describe("Booking controller", func() {
 					return "", err
 				}
 				return createdBooking.Status.Status, nil
-			}, duration, interval).Should(Equal(managerv1.BookingScheduled), "should show that the booking status is scheduled")
+			}, duration, interval).Should(Equal(managerv1.BookingInProgress), "should show that the booking status is scheduled")
 
 			// TODO Check if the resource spec.booked got updated
 		})
@@ -161,7 +162,8 @@ var _ = Describe("Booking controller", func() {
 				return true
 			}, timeout, interval).Should(BeTrue())
 
-			Expect(createdBooking.Spec).Should(Equal(bookingSpec))
+			Expect(createdBooking.Spec.StartAt).Should(Equal(FinishedBookingStart))
+			Expect(createdBooking.Spec.EndAt).Should(Equal(FinishedBookingEnd))
 
 			By("By checking if the booking status is updated")
 			Consistently(func() (string, error) {
@@ -170,7 +172,7 @@ var _ = Describe("Booking controller", func() {
 					return "", err
 				}
 				return createdBooking.Status.Status, nil
-			}, duration, interval).Should(Equal(managerv1.BookingScheduled), "should show that the booking status is scheduled")
+			}, duration, interval).Should(Equal(managerv1.BookingFinished), "should show that the booking status is scheduled")
 
 			// TODO Check if the resource spec.booked got updated
 		})
