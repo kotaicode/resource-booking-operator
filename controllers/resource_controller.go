@@ -81,9 +81,10 @@ func (r *ResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		status = "PENDING"
 	}
 
+	// TODO const the statuses
 	if resource.Spec.Booked {
 		// Just so I can test
-		if status == "STOPPED" {
+		if status != "RUNNING" {
 			err := res.Start()
 			if err != nil {
 				log.Error(err, "Error starting resource instances")
