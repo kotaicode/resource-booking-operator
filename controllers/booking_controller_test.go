@@ -84,19 +84,19 @@ var _ = Describe("Booking controller", func() {
 					return false
 				}
 				return true
-			}, timeout, interval).Should(BeTrue())
+			}).Should(BeTrue())
 
 			Expect(createdBooking.Spec.StartAt).Should(Equal(ScheduledBookingStart))
 			Expect(createdBooking.Spec.EndAt).Should(Equal(ScheduledBookingEnd))
 
 			By("By checking if the booking status is updated")
-			Consistently(func() (string, error) {
+			Eventually(func() (string, error) {
 				err := k8sClient.Get(ctx, resourceLookupKey, createdBooking)
 				if err != nil {
 					return "", err
 				}
 				return createdBooking.Status.Status, nil
-			}, duration, interval).Should(Equal(managerv1.BookingScheduled), "should show that the booking status is scheduled")
+			}).Should(Equal(managerv1.BookingScheduled), "should show that the booking status is scheduled")
 		})
 
 		It("Should update booking status", func() {
@@ -121,19 +121,19 @@ var _ = Describe("Booking controller", func() {
 					return false
 				}
 				return true
-			}, timeout, interval).Should(BeTrue())
+			}).Should(BeTrue())
 
 			Expect(createdBooking.Spec.StartAt).Should(Equal(InProgressBookingStart))
 			Expect(createdBooking.Spec.EndAt).Should(Equal(InProgressBookingEnd))
 
 			By("By checking if the booking status is updated")
-			Consistently(func() (string, error) {
+			Eventually(func() (string, error) {
 				err := k8sClient.Get(ctx, resourceLookupKey, createdBooking)
 				if err != nil {
 					return "", err
 				}
 				return createdBooking.Status.Status, nil
-			}, duration, interval).Should(Equal(managerv1.BookingInProgress), "should show that the booking status is scheduled")
+			}).Should(Equal(managerv1.BookingInProgress), "should show that the booking status is in progres")
 
 			// TODO Check if the resource spec.booked got updated
 		})
@@ -160,19 +160,19 @@ var _ = Describe("Booking controller", func() {
 					return false
 				}
 				return true
-			}, timeout, interval).Should(BeTrue())
+			}).Should(BeTrue())
 
 			Expect(createdBooking.Spec.StartAt).Should(Equal(FinishedBookingStart))
 			Expect(createdBooking.Spec.EndAt).Should(Equal(FinishedBookingEnd))
 
 			By("By checking if the booking status is updated")
-			Consistently(func() (string, error) {
+			Eventually(func() (string, error) {
 				err := k8sClient.Get(ctx, resourceLookupKey, createdBooking)
 				if err != nil {
 					return "", err
 				}
 				return createdBooking.Status.Status, nil
-			}, duration, interval).Should(Equal(managerv1.BookingFinished), "should show that the booking status is scheduled")
+			}).Should(Equal(managerv1.BookingFinished), "should show that the booking status is finished")
 
 			// TODO Check if the resource spec.booked got updated
 		})
