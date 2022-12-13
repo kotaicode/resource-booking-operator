@@ -47,3 +47,5 @@ jobs:
 
     - name: Test
       run: make test
+      env:
+        AWS_SDK_LOAD_CONFIG: true
