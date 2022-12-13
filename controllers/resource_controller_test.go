@@ -55,10 +55,7 @@ var _ = Describe("Resource controller", func() {
 
 			Eventually(func() bool {
 				err := k8sClient.Get(ctx, resourceLookupKey, createdResource)
-				if err != nil {
-					return false
-				}
-				return true
+				return err != nil
 			}, timeout, interval).Should(BeTrue())
 
 			Expect(createdResource.Spec.Tag).Should(Equal(ResourceTag))
