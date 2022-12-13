@@ -32,6 +32,12 @@ jobs:
 
     - name: Build
       run: go build -v .
+      
+    - name: KinD (Kubernetes in Docker)
+      uses: engineerd/setup-kind@v0.5.0
+      
+    - name: Deploy manifests
+      run: make install
 
     - name: Setup envtest
       run: make envtest
