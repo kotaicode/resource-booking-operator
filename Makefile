@@ -150,3 +150,14 @@ $(CONTROLLER_GEN): $(LOCALBIN)
 envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST): $(LOCALBIN)
 	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+
+## Experiments
+.PHONY: list-instances
+list-instances:
+	aws ec2 describe-instances --query "Reservations[].Instances[].{Instance:InstanceId,Managed:Tags[?Key=='resource-booking/managed']|[0].Value,Resource:Tags[?Key=='resource-booking/application']|[0].Value}" --output table
+
+.PHONY: tag-instances
+tag-instances:
+	aws ec2 create-tags \
+		--resources $(instances) \
+		--tags Key=resource-booking/application,Value=$(tag)
