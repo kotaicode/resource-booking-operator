@@ -161,3 +161,9 @@ tag-instances:
 	aws ec2 create-tags \
 		--resources $(instances) \
 		--tags Key=resource-booking/application,Value=$(tag)
+
+.PHONY: mark-managed
+mark-managed:
+	aws ec2 create-tags \
+		--resources $(instances) \
+		--tags Key=resource-booking/managed,Value=$(enable)
