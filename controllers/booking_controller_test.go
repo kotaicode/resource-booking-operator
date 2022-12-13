@@ -80,10 +80,7 @@ var _ = Describe("Booking controller", func() {
 
 			Eventually(func() bool {
 				err := k8sClient.Get(ctx, resourceLookupKey, createdBooking)
-				if err != nil {
-					return false
-				}
-				return true
+				return err != nil
 			}).Should(BeTrue())
 
 			Expect(createdBooking.Spec.StartAt).Should(Equal(ScheduledBookingStart))
@@ -117,10 +114,7 @@ var _ = Describe("Booking controller", func() {
 
 			Eventually(func() bool {
 				err := k8sClient.Get(ctx, resourceLookupKey, createdBooking)
-				if err != nil {
-					return false
-				}
-				return true
+				return err != nil
 			}).Should(BeTrue())
 
 			Expect(createdBooking.Spec.StartAt).Should(Equal(InProgressBookingStart))
@@ -156,10 +150,7 @@ var _ = Describe("Booking controller", func() {
 
 			Eventually(func() bool {
 				err := k8sClient.Get(ctx, resourceLookupKey, createdBooking)
-				if err != nil {
-					return false
-				}
-				return true
+				return err != nil
 			}).Should(BeTrue())
 
 			Expect(createdBooking.Spec.StartAt).Should(Equal(FinishedBookingStart))
