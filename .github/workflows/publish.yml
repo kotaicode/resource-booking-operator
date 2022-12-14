@@ -4,7 +4,7 @@ name: Publish
 
 on:
   push:
-    branches: [ main, publish-action ]
+    branches: [ main ]
 
 jobs:
   publish:
