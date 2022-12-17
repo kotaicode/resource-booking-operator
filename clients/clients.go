@@ -3,13 +3,13 @@ package clients
 
 import (
 	"errors"
-	"path/filepath"
+	"flag"
 
 	managerv1 "github.com/kotaicode/resource-booking-operator/api/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -36,6 +36,13 @@ type CloudResource interface {
 	Status() (ResourceStatus, error)
 }
 
+var kubeconfig string
+
+func init() {
+	flag.StringVar(&kubeconfig, "kubeconfig", "", "Path to Kubernetes config file")
+	flag.Parse()
+}
+
 // ResourceFactory generates structs that abide by the CloudResource interface.
 // The returned struct can start, stop, and list instances. Each new integration needso to be added to this factory function.
 func ResourceFactory(resType, tag string) (CloudResource, error) {
@@ -51,11 +58,17 @@ func ResourceFactory(resType, tag string) (CloudResource, error) {
 	return resource, nil
 }
 
-// GetClient returns a ready to use kubernetes client. By default the context will be set through ~/.kube/config.
+// GetClient returns a ready to use kubernetes client.
 func GetClient() (client.Client, error) {
+	var err error
+	var config *rest.Config
 
-	// NOTE: We might have to revisit that part, but good enough for now.
-	cfg, err := clientcmd.BuildConfigFromFlags("", filepath.Join(homedir.HomeDir(), ".kube", "config"))
+	if kubeconfig == "" {
+		config, err = rest.InClusterConfig()
+	} else {
+		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
+	}
+
 	if err != nil {
 		panic(err.Error())
 	}
@@ -64,10 +77,11 @@ func GetClient() (client.Client, error) {
 	utilruntime.Must(managerv1.AddToScheme(scheme))
 	clientOpts := client.Options{Scheme: scheme}
 
-	c, err := client.New(cfg, clientOpts)
+	c, err := client.New(config, clientOpts)
 	if err != nil {
 		return nil, err
 	}
 
 	return c, nil
+
 }
