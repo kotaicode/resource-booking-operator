@@ -35,7 +35,9 @@ type ResourceStatus struct {
 	InstanceStatusCode int64  `json:"instance_status_code"`
 }
 
-var mySession *session.Session = session.Must(session.NewSession())
+var mySession *session.Session = session.Must(session.NewSessionWithOptions(session.Options{
+	SharedConfigState: session.SharedConfigEnable,
+}))
 
 // EC2Client is the EC2 client session
 var EC2Client *ec2.EC2 = ec2.New(mySession)
