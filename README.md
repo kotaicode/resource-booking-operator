@@ -4,11 +4,11 @@
 Manage your compute instances, or explore this general example on how a booking system for cloud computing resources could work, using Kubernetes custom resource operator.
 
 ## How it works
-The custom resource operator provides friendly interface to manage cloud resources through bookings.  
+The custom resource operator provides a friendly interface to manage cloud resources through bookings.
 
-You start by grouping your cloud instances under a common resource tagname, and then creating a custom resource with that tag on your cluster. Once you have resources, you can manage their state through bookings that have a tag name, start, and end time.
+We start by grouping our cloud instances under a common resource tag name, and then creating a custom resource with that tag on our cluster. Once we have resources, we can manage their state through bookings that have a resource name, start, and end time.
 
-Example yamls can be seen in the `config/samples` directory or in the [usage section](#usage).
+Example manifests can be found in the [config/samples] directory.
 
 ## Quick start
 
@@ -22,6 +22,7 @@ Start the operator:
 ```
 make run
 ```
+## The details
 
 TODO: Emphasize and link to docs.
 
