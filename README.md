@@ -18,12 +18,11 @@ To play with the operator against a default local cluster, we first need to inst
 make install
 ```
 
-## Usage
-
-Start the operator.
+Start the operator:
 ```
 make run
 ```
+
 TODO: Emphasize and link to docs.
 
 ## Development
