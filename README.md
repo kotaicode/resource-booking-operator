@@ -24,9 +24,9 @@ make run
 ```
 ## The details
 
-TODO: Emphasize and link to docs.
+For more details on how to use the operator, we highly recommend [checking out the documentation](https://github.com/kotaicode/resource-booking-operator/edit/readme-to-docs/TODO.md).
 
 ## Development
-Kubebuilder is hard dependency of the project, so one of the best guides to extending and playing with this codebase is the [Kubebuilder book](https://book.kubebuilder.io/).
+Kubebuilder is a hard development dependency of the project, so one of the best guides to extending and playing with this codebase is the [Kubebuilder book](https://book.kubebuilder.io/).
 
 ## Roadmap
