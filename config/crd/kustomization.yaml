@@ -4,7 +4,7 @@
 resources:
   - bases/manager.kotaico.de_resources.yaml
   - bases/manager.kotaico.de_bookings.yaml
-- bases/manager.kotaico.de_resourcemonitors.yaml
+  - bases/manager.kotaico.de_resourcemonitors.yaml
 #+kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:
