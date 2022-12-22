@@ -24,7 +24,7 @@ make run
 ```
 ## The details
 
-For more details on how to use the operator, we highly recommend [checking out the documentation](https://github.com/kotaicode/resource-booking-operator/edit/readme-to-docs/TODO.md).
+📘 For more details on how to use the operator, we highly recommend [checking out the documentation](https://github.com/kotaicode/resource-booking-operator/edit/readme-to-docs/TODO.md).
 
 ## Development
 Kubebuilder is a hard development dependency of the project, so one of the best guides to extending and playing with this codebase is the [Kubebuilder book](https://book.kubebuilder.io/).
