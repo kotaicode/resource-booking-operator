@@ -8,7 +8,7 @@ The custom resource operator provides a friendly interface to manage cloud resou
 
 We start by grouping our cloud instances under a common resource tag name, and then creating a custom resource with that tag on our cluster. Once we have resources, we can manage their state through bookings that have a resource name, start, and end time.
 
-Example manifests can be found in the [config/samples] directory.
+Example manifests can be found in the [config/samples](config/samples) directory.
 
 ## Quick start
 
