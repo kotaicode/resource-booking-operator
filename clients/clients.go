@@ -1,3 +1,4 @@
+// Package clients contains common logic and data structures for the supported cloud providers.
 package clients
 
 import "github.com/kotaicode/resource-booking-operator/clients/ec2"
@@ -18,7 +19,7 @@ type ResourceStatus struct {
 }
 
 // CloudResource provides generic Resource interface. A Resource is a group of instances which
-// can be started or stopped, the interface also requires a method to list the instances and their status.
+// can be started or stopped. The interface also requires a method to list their statuses.
 type CloudResource interface {
     Start() error
     Stop() error
@@ -26,7 +27,7 @@ type CloudResource interface {
 }
 
 // ResourceFactory generates structs that abide by the CloudResource interface.
-// The returned struct can start, stop, and list instances. Each new integration needso be added to this factory
+// The returned struct can start, stop, and list instances. Each new integration needso to be added to this factory function.
 func ResourceFactory(resType, tag string) CloudResource {
     var resource CloudResource
 

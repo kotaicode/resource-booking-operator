@@ -28,11 +28,9 @@ const (
 
 // BookingSpec defines the desired state of Booking
 type BookingSpec struct {
-	// TODO UserID           int32  `json:"user_id,omitempty"`
 	EndAt        string `json:"end_at"`
 	StartAt      string `json:"start_at"`
 	ResourceName string `json:"resource_name"`
-	// TODO NotificationSent bool   `json:"notification_sent"`
 }
 
 // BookingStatus defines the observed state of Booking
