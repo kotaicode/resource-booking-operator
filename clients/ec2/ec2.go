@@ -6,33 +6,28 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+    "github.com/kotaicode/resource-booking-operator/clients"
 )
 
-// StatusPending holds the EC2 integer representation of the pending status
-const StatusPending int64 = 0
+const (
+    // StatusPending holds the EC2 integer representation of the pending status
+    StatusPending int64 = 0
 
-// StatusRunning holds the EC2 integer representation of the running status
-const StatusRunning int64 = 16
+    // StatusRunning holds the EC2 integer representation of the running status
+    StatusRunning int64 = 16
 
-// StatusStopping holds the EC2 integer representation of the stopping status
-const StatusStopping int64 = 64
+    // StatusStopping holds the EC2 integer representation of the stopping status
+    StatusStopping int64 = 64
 
-// StatusStopped holds the EC2 integer representation of the stopping status
-const StatusStopped int64 = 80
+    // StatusStopped holds the EC2 integer representation of the stopping status
+    StatusStopped int64 = 80
 
-const defaultTagKey string = "resource-booking/application"
-
-// Resource is a struct specifically created because of the methods assigned to it.
-// Although a good TODO will be to check if it's a good practice to tie them to the repository struct which is almost identical
+    // DefaultTagKey is used to store the tag which marks the instance as managed by the operator
+    DefaultTagKey string = "resource-booking/application"
+)
+// Resource represents a collection of EC2 instances grouped by a common "resource-booking/application" tag
 type Resource struct {
 	NameTag    string
-	IsArchived bool
-}
-
-// ResourceStatus holds the status summary of the resource
-type ResourceStatus struct {
-	InstanceStatusName string `json:"instance_status_name"`
-	InstanceStatusCode int64  `json:"instance_status_code"`
 }
 
 var mySession *session.Session = session.Must(session.NewSessionWithOptions(session.Options{
@@ -78,44 +73,42 @@ func (r *Resource) Stop() error {
 
 // Status returns the current summary of a given resource instance statuses.
 // It makes a call through the EC2 client with a given set of instance IDs and summarises their status (active vs running)
-func (r *Resource) Status() ([]ResourceStatus, error) {
+func (r *Resource) Status() (clients.ResourceStatus, error) {
 	includeAll := true
-	var rst []ResourceStatus
+	var rst clients.ResourceStatus
 
-	if !r.IsArchived {
-		instanceIds, err := r.getInstanceIds(r.NameTag)
-		if err != nil {
-			return rst, err
-		}
+    instanceIds, err := r.getInstanceIds(r.NameTag)
+    if err != nil {
+        return rst, err
+    }
 
-		resp, err := EC2Client.DescribeInstanceStatus(&ec2.DescribeInstanceStatusInput{
-			IncludeAllInstances: &includeAll,
-			InstanceIds:         instanceIds,
-		})
-		if err != nil {
-			return rst, err
-		}
+    resp, err := EC2Client.DescribeInstanceStatus(&ec2.DescribeInstanceStatusInput{
+        IncludeAllInstances: &includeAll,
+        InstanceIds:         instanceIds,
+    })
+    if err != nil {
+        return rst, err
+    }
 
-		// EC2 API will return all instances if we send an empty instance IDs list. Handle that.
-		if len(instanceIds) > 0 {
-			for _, inst := range resp.InstanceStatuses {
-				rst = append(rst, ResourceStatus{
-					InstanceStatusName: *inst.InstanceState.Name,
-					InstanceStatusCode: *inst.InstanceState.Code,
-				})
-			}
-		}
-	}
+    // EC2 API will return all instances if we send an empty instance IDs list. Handle that.
+    if len(instanceIds) > 0 {
+        for _, inst := range resp.InstanceStatuses {
+            rst.Available++
+            if *inst.InstanceState.Code == StatusRunning {
+                rst.Running++
+            }
+        }
+    }
 
 	return rst, nil
 }
 
-// Get instance IDs from a given name tag. Basically wrap the EC2 call with a filter of our default tag identificator.
+// getInstanceIds returns instance IDs from a given name tag. Basically wrap the EC2 call with a filter of our default tag identificator.
 func (r *Resource) getInstanceIds(nameTag string) ([]*string, error) {
 	var instanceIds []*string
 
 	// Prepare filters
-	tagKey := fmt.Sprintf("tag:%s", defaultTagKey)
+	tagKey := fmt.Sprintf("tag:%s", DefaultTagKey)
 	nameFilter := &ec2.Filter{
 		Name:   &tagKey,
 		Values: []*string{&nameTag},
