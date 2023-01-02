@@ -26,7 +26,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	managerv1 "github.com/kotaicode/resource-booking-operator/api/v1"
-	"github.com/kotaicode/resource-booking-operator/clients/ec2"
 	"github.com/kotaicode/resource-booking-operator/clients"
 )
 
@@ -46,7 +45,7 @@ type ResourceReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
 func (r *ResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-    var status string
+	var status string
 
 	log := log.FromContext(ctx)
 	log.Info("Reconciling resource")
@@ -57,25 +56,25 @@ func (r *ResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-    cloudResource := clients.ResourceFactory(resource.Spec.Type, resource.Spec.Tag)
-        
+	cloudResource := clients.ResourceFactory(resource.Spec.Type, resource.Spec.Tag)
+
 	rStat, err := cloudResource.Status()
 	if err != nil {
 		log.Error(err, "Error getting resource status")
 	}
 
-    switch rStat.Running {
-    case 0:
-        status = clients.StatusStopped
-    case rStat.Available:
-        status = clients.StatusRunning
-    default:
-        status = clients.StatusPending
-    }
+	switch rStat.Running {
+	case 0:
+		status = clients.StatusStopped
+	case rStat.Available:
+		status = clients.StatusRunning
+	default:
+		status = clients.StatusPending
+	}
 
 	if resource.Spec.Booked {
 		if status != clients.StatusRunning {
-            if err := cloudResource.Start(); err != nil {
+			if err := cloudResource.Start(); err != nil {
 				log.Error(err, "Error starting resource instances")
 			}
 		}
