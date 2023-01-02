@@ -18,7 +18,6 @@ package controllers
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -57,9 +56,8 @@ func (r *ResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	cloudResource := clients.ResourceFactory(resource.Spec.Type, resource.Spec.Tag)
-	if cloudResource == nil {
-		err := errors.New("Error getting cloud resource")
+	cloudResource, err := clients.ResourceFactory(resource.Spec.Type, resource.Spec.Tag)
+	if err != nil {
 		return ctrl.Result{}, err
 	}
 

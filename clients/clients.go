@@ -1,6 +1,10 @@
 // Package clients contains common logic and data structures for the supported cloud providers.
 package clients
 
+import (
+	"errors"
+)
+
 const (
 	TypeEC2 string = "ec2"
 )
@@ -26,13 +30,15 @@ type CloudResource interface {
 
 // ResourceFactory generates structs that abide by the CloudResource interface.
 // The returned struct can start, stop, and list instances. Each new integration needso to be added to this factory function.
-func ResourceFactory(resType, tag string) CloudResource {
+func ResourceFactory(resType, tag string) (CloudResource, error) {
 	var resource CloudResource
 
 	switch resType {
 	case TypeEC2:
 		resource = &EC2Resource{NameTag: tag}
+	default:
+		return nil, errors.New("Resource type not found")
 	}
 
-	return resource
+	return resource, nil
 }
