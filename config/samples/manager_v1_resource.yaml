@@ -9,5 +9,6 @@ metadata:
     app.kubernetes.io/created-by: resource-booking-operator
   name: analytics
 spec:
+  type: ec2
   tag: analytics
   booked: false

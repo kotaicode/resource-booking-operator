@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -57,10 +58,15 @@ func (r *ResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	cloudResource := clients.ResourceFactory(resource.Spec.Type, resource.Spec.Tag)
+	if cloudResource == nil {
+		err := errors.New("Error getting cloud resource")
+		return ctrl.Result{}, err
+	}
 
 	rStat, err := cloudResource.Status()
 	if err != nil {
 		log.Error(err, "Error getting resource status")
+		return ctrl.Result{}, err
 	}
 
 	switch rStat.Running {
@@ -76,12 +82,14 @@ func (r *ResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if status != clients.StatusRunning {
 			if err := cloudResource.Start(); err != nil {
 				log.Error(err, "Error starting resource instances")
+				return ctrl.Result{}, err
 			}
 		}
 	} else {
 		if status == clients.StatusRunning {
 			if err := cloudResource.Stop(); err != nil {
 				log.Error(err, "Error stopping resource instances")
+				return ctrl.Result{}, err
 			}
 		}
 	}
