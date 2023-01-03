@@ -58,6 +58,7 @@ func (r *ResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	cloudResource, err := clients.ResourceFactory(resource.Spec.Type, resource.Spec.Tag)
 	if err != nil {
+		log.Error(err, err.Error())
 		return ctrl.Result{}, err
 	}
 
