@@ -6,7 +6,7 @@
     <link href="https://fonts.googleapis.com/css2?family=&family=Lato:wght@300;500;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0" />
     <meta charset="utf-8">
-    <title></title>
+    <title>Resource Booking Operator</title>
     <style>
         body {
             width: auto;
@@ -69,7 +69,8 @@
         }
         
         .feature > p {
-            font-size: 1.3em;
+            font-size: 1.35em;
+            font-weight: 300;
         }
 
         .feature > .material-symbols-outlined {
@@ -84,9 +85,18 @@
             color: #538BDB;
             background: #fff;
             border: 2px solid;
-            font-weight: 400;
+            font-weight: 300;
             border-radius: 5px;
             text-decoration: none;
+        }
+
+        footer {
+            text-align: center;
+        }
+
+        #logo {
+            width: 4em;
+            margin: 50px 0 5px;
         }
 
         @media (prefers-color-scheme: dark) {
@@ -144,31 +154,35 @@
 
         <section class="features-wrapper">
             <div class="feature">
-                <span class="material-symbols-outlined">cloud</span>
+                <span class="material-symbols-outlined">memory</span>
                 <p>
-                    Letraset sheets containing Lorem Ipsum passages and more
+                    Manage cloud resources using custom Kubernetes operator.
                 </p>
             </div>
             <div class="feature">
-                <span class="material-symbols-outlined">cloud</span>
+                <span class="material-symbols-outlined">manage_history</span>
                 <p>
-                    Letraset sheets containing Lorem Ipsum passages and more
+                    Cut down server costs by utilizing a time booking system.
                 </p>
             </div>
             <div class="feature">
-                <span class="material-symbols-outlined">cloud</span>
+                <span class="material-symbols-outlined">support</span>
                 <p>
-                    Letraset sheets containing Lorem Ipsum passages and more
+                    Get to know how Kubernetes custom resources can be used.
                 </p>
             </div>
         </section>
 
         <section class="actions-box">
-            <a href="#">Get Started</a>
+            <a href="https://github.com/kotaicode/resource-booking-operator" target="_blank">Get Started</a>
             <a href="#">Documentation</a>
         </section>
 
-        <footer></footer>
+        <footer>
+            <a href="https://kotaico.de" target="_blank">
+                <img alt="Kotaicode" id="logo" src="bird_outline_nogaps_blue_notext.svg">
+            </a>
+        </footer>
     </div>
 </body>
 </html>
