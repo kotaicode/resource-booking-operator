@@ -26,7 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	managerv1 "github.com/kotaicode/resource-booking-operator/api/v1"
-	"github.com/kotaicode/resource-booking-operator/clients/ec2"
+	"github.com/kotaicode/resource-booking-operator/clients"
 )
 
 // ResourceReconciler reconciles a Resource object
@@ -41,14 +41,12 @@ type ResourceReconciler struct {
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the Resource object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
 func (r *ResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	var status string
+
 	log := log.FromContext(ctx)
 	log.Info("Reconciling resource")
 
@@ -58,51 +56,46 @@ func (r *ResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	res := ec2.Resource{NameTag: resource.Spec.Tag}
-	instanceStatus, err := res.Status()
+	cloudResource, err := clients.ResourceFactory(resource.Spec.Type, resource.Spec.Tag)
+	if err != nil {
+		log.Error(err, err.Error())
+		return ctrl.Result{}, err
+	}
+
+	rStat, err := cloudResource.Status()
 	if err != nil {
 		log.Error(err, "Error getting resource status")
+		return ctrl.Result{}, err
 	}
 
-	var running, available int32
-	var status string
-	for _, v := range instanceStatus {
-		available++
-		if v.InstanceStatusCode == ec2.StatusRunning {
-			running++
-		}
+	switch rStat.Running {
+	case 0:
+		status = clients.StatusStopped
+	case rStat.Available:
+		status = clients.StatusRunning
+	default:
+		status = clients.StatusPending
 	}
 
-	if running == 0 {
-		status = "STOPPED"
-	} else if running == available {
-		status = "RUNNING"
-	} else {
-		status = "PENDING"
-	}
-
-	// TODO const the statuses
 	if resource.Spec.Booked {
-		// Just so I can test
-		if status != "RUNNING" {
-			err := res.Start()
-			if err != nil {
+		if status != clients.StatusRunning {
+			if err := cloudResource.Start(); err != nil {
 				log.Error(err, "Error starting resource instances")
+				return ctrl.Result{}, err
 			}
 		}
 	} else {
-		// Just so I can test
-		if status == "RUNNING" {
-			err := res.Stop()
-			if err != nil {
+		if status == clients.StatusRunning {
+			if err := cloudResource.Stop(); err != nil {
 				log.Error(err, "Error stopping resource instances")
+				return ctrl.Result{}, err
 			}
 		}
 	}
 
 	resource.Status = managerv1.ResourceStatus{
-		Instances: available,
-		Running:   running,
+		Instances: rStat.Available,
+		Running:   rStat.Running,
 		Status:    status,
 	}
 
@@ -112,7 +105,7 @@ func (r *ResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	// log.Info("reconciled resource")
+	log.Info("reconciled resource")
 	return ctrl.Result{RequeueAfter: time.Duration(time.Second * 30)}, nil
 }
 

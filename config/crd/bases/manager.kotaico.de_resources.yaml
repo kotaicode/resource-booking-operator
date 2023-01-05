@@ -52,18 +52,19 @@ spec:
                 type: boolean
               tag:
                 type: string
+              type:
+                type: string
             required:
             - booked
             - tag
+            - type
             type: object
           status:
             description: ResourceStatus defines the observed state of Resource
             properties:
               instances:
-                format: int32
                 type: integer
               running:
-                format: int32
                 type: integer
               status:
                 type: string

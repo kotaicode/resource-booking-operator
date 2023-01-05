@@ -24,12 +24,13 @@ import (
 type ResourceSpec struct {
 	Booked bool   `json:"booked"`
 	Tag    string `json:"tag"`
+	Type   string `json:"type"`
 }
 
 // ResourceStatus defines the observed state of Resource
 type ResourceStatus struct {
-	Instances int32  `json:"instances"`
-	Running   int32  `json:"running"`
+	Instances int    `json:"instances"`
+	Running   int    `json:"running"`
 	Status    string `json:"status"`
 }
 

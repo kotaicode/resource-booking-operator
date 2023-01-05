@@ -40,10 +40,6 @@ type BookingReconciler struct {
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the Booking object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
@@ -51,7 +47,6 @@ func (r *BookingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	log := log.FromContext(ctx)
 	log.Info("Reconciling resource")
 
-	var resources managerv1.ResourceList
 	var booking managerv1.Booking
 	if err := r.Get(ctx, req.NamespacedName, &booking); err != nil {
 		log.Error(err, "Error getting booking")
@@ -68,6 +63,7 @@ func (r *BookingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		log.Error(err, "Error parsing booking end")
 	}
 
+	var resources managerv1.ResourceList
 	if err := r.List(context.Background(), &resources, client.MatchingFields{"spec.tag": booking.Spec.ResourceName}); err != nil {
 		log.Error(err, "Error listing bookings")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -76,7 +72,7 @@ func (r *BookingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	if bookStart.Before(time.Now()) && time.Now().Before(bookEnd) {
 		updateResource(r, ctx, &resources, true)
 		booking.Status.Status = managerv1.BookingInProgress
-	} else if bookStart.Before(time.Now()) && bookEnd.Before(time.Now()) {
+	} else if bookEnd.Before(time.Now()) {
 		updateResource(r, ctx, &resources, false)
 		booking.Status.Status = managerv1.BookingFinished
 	} else {

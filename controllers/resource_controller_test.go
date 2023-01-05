@@ -19,6 +19,7 @@ var _ = Describe("Resource controller", func() {
 	const (
 		ResourceName      = "test-resource"
 		ResourceTag       = "analytics"
+		ResourceType      = "ec2"
 		ResourceNamespace = "default"
 
 		timeout  = time.Second * 10

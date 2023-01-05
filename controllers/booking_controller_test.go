@@ -18,7 +18,7 @@ var _ = Describe("Booking controller", func() {
 
 	// Define utility constants for object names and testing timeouts/durations and intervals.
 	const (
-		BookingName         = "test-resource"
+		BookingName         = "test-booking"
 		BookingNamespace    = "default"
 		BookingResourceName = "analytics"
 		timeout             = time.Second * 50

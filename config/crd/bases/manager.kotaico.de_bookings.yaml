@@ -46,7 +46,6 @@ spec:
             description: BookingSpec defines the desired state of Booking
             properties:
               end_at:
-                description: TODO UserID           int32  `json:"user_id,omitempty"`
                 type: string
               resource_name:
                 type: string
