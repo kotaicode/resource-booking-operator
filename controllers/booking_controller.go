@@ -70,14 +70,14 @@ func (r *BookingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	if bookStart.Before(time.Now()) && time.Now().Before(bookEnd) {
-		updateResource(r, ctx, &resources, true)
 		booking.Status.Status = managerv1.BookingInProgress
+		updateResource(r, ctx, &resources, &booking)
 	} else if bookEnd.Before(time.Now()) {
-		updateResource(r, ctx, &resources, false)
 		booking.Status.Status = managerv1.BookingFinished
+		updateResource(r, ctx, &resources, &booking)
 	} else {
-		updateResource(r, ctx, &resources, false)
 		booking.Status.Status = managerv1.BookingScheduled
+		updateResource(r, ctx, &resources, &booking)
 	}
 
 	log.Info("Updating booking status", "status", booking.Status.Status)
@@ -95,15 +95,35 @@ func (r *BookingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	return ctrl.Result{RequeueAfter: time.Duration(time.Minute * 1)}, nil
 }
 
-func updateResource(r *BookingReconciler, ctx context.Context, resources *managerv1.ResourceList, booked bool) {
+func updateResource(r *BookingReconciler, ctx context.Context, resources *managerv1.ResourceList, booking *managerv1.Booking) {
 	log := log.FromContext(ctx)
 
 	for _, rs := range resources.Items {
-		rs.Spec.Booked = booked
+
+		rs.Spec.Booked = booking.Status.Status == managerv1.BookingInProgress
 
 		err := r.Update(ctx, &rs)
 		if err != nil {
 			log.Error(err, "Error updating resource spec")
+		}
+
+		// TODO Two things to check out
+		// 1. Mixing status update and spec update one after another has bad side effects (the second call does not work?)
+		//    which might be because the pointer is populated with a fresh data from the server as a result from the call.
+		// 2. Not sure if status update should be done here, though we need it that way for our use case.
+
+		switch booking.Status.Status {
+		case managerv1.BookingInProgress:
+			rs.Status.LockedBy = string(booking.ObjectMeta.UID)
+			rs.Status.LockedUntil = booking.Spec.EndAt
+		case managerv1.BookingFinished:
+			rs.Status.LockedBy = ""
+			rs.Status.LockedUntil = ""
+		}
+
+		err = r.Status().Update(ctx, &rs)
+		if err != nil {
+			log.Error(err, "Error updating resource status")
 		}
 	}
 }

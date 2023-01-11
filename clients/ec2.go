@@ -3,7 +3,9 @@
 package clients
 
 import (
+	"errors"
 	"fmt"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -21,6 +23,11 @@ const (
 	resourceMonitorTagKey string = "resource-booking/managed"
 )
 
+var (
+	lockedByTag    string = "resource-booking/locked-by"
+	lockedUntilTag string = "resource-booking/locked-until"
+)
+
 // Resource represents a collection of EC2 instances grouped by a common "resource-booking/application" tag.
 type EC2Resource struct {
 	NameTag string
@@ -32,10 +39,27 @@ var mySession *session.Session = session.Must(session.NewSessionWithOptions(sess
 var ec2Client *ec2.EC2 = ec2.New(mySession)
 
 // Start makes a call through the EC2 client to start resource instances by their IDs.
-func (r *EC2Resource) Start() error {
-	instanceIds, err := r.getInstanceIds(r.NameTag)
+func (r *EC2Resource) Start(uid, endAt string) error {
+	// TODO ^ Can we cleanup the params, is there a simpler, non-polluting way?
+	instanceIds, instanceTags, err := r.getInstanceIds(r.NameTag)
 	if err != nil {
 		return err
+	}
+
+	fmt.Println("TAGS : ", instanceTags)
+
+	if _, ok := instanceTags[lockedByTag]; ok && instanceTags[lockedUntilTag] != "" {
+		d, err := time.Parse(time.RFC3339, instanceTags[lockedUntilTag])
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(uid, instanceTags[lockedByTag])
+		if instanceTags[lockedByTag] != uid && time.Now().Before(d) {
+			m := "Resource is locked by %s. The lock expires at %s."
+			err = errors.New(fmt.Sprintf(m, instanceTags[lockedByTag], instanceTags[lockedUntilTag]))
+			return err
+		}
 	}
 
 	_, err = ec2Client.StartInstances(&ec2.StartInstancesInput{
@@ -45,19 +69,46 @@ func (r *EC2Resource) Start() error {
 		return err
 	}
 
+	err = r.lock(uid, endAt, instanceIds)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // Stop makes a call through the EC2 client to stop the instances that belong to the resource.
-func (r *EC2Resource) Stop() error {
-	instanceIds, err := r.getInstanceIds(r.NameTag)
+func (r *EC2Resource) Stop(uid string) error {
+	instanceIds, instanceTags, err := r.getInstanceIds(r.NameTag)
 	if err != nil {
 		return err
+	}
+
+	fmt.Println("TAGS : ", instanceTags)
+
+	// TODO Move to func
+	if _, ok := instanceTags[lockedByTag]; ok && instanceTags[lockedUntilTag] != "" {
+		d, err := time.Parse(time.RFC3339, instanceTags[lockedUntilTag])
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(uid, instanceTags[lockedByTag])
+		if instanceTags[lockedByTag] != uid && time.Now().Before(d) {
+			m := "Resource is locked by %s. The lock expires at %s."
+			err = errors.New(fmt.Sprintf(m, instanceTags[lockedByTag], instanceTags[lockedUntilTag]))
+			return err
+		}
 	}
 
 	_, err = ec2Client.StopInstances(&ec2.StopInstancesInput{
 		InstanceIds: instanceIds,
 	})
+	if err != nil {
+		return err
+	}
+
+	err = r.unlock(instanceIds)
 	if err != nil {
 		return err
 	}
@@ -71,7 +122,7 @@ func (r *EC2Resource) Status() (ResourceStatus, error) {
 	includeAll := true
 	var rst ResourceStatus
 
-	instanceIds, err := r.getInstanceIds(r.NameTag)
+	instanceIds, _, err := r.getInstanceIds(r.NameTag)
 	if err != nil {
 		return rst, err
 	}
@@ -97,9 +148,45 @@ func (r *EC2Resource) Status() (ResourceStatus, error) {
 	return rst, nil
 }
 
+// TODO
+func (r *EC2Resource) lock(uid string, endAt string, instanceIDs []*string) error {
+	_, err := ec2Client.CreateTags(&ec2.CreateTagsInput{
+		Resources: instanceIDs,
+		Tags: []*ec2.Tag{
+			{Key: &lockedByTag, Value: &uid},
+			{Key: &lockedUntilTag, Value: &endAt},
+		},
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// TODO
+func (r *EC2Resource) unlock(instanceIDs []*string) error {
+	_, err := ec2Client.DeleteTags(&ec2.DeleteTagsInput{
+		Resources: instanceIDs,
+		Tags: []*ec2.Tag{
+			{Key: &lockedByTag},
+			{Key: &lockedUntilTag},
+		},
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // getInstanceIds returns instance IDs from a given name tag. Basically wrap the EC2 call with a filter of our default tag identificator.
-func (r *EC2Resource) getInstanceIds(nameTag string) ([]*string, error) {
+func (r *EC2Resource) getInstanceIds(nameTag string) ([]*string, map[string]string, error) {
 	var instanceIds []*string
+	var instanceTagList []*ec2.Tag
+	instanceTags := make(map[string]string)
 
 	// Prepare filters
 	tagKey := fmt.Sprintf("tag:%s", defaultTagKey)
@@ -112,16 +199,32 @@ func (r *EC2Resource) getInstanceIds(nameTag string) ([]*string, error) {
 		Filters: []*ec2.Filter{nameFilter},
 	})
 	if err != nil {
-		return nil, err
+		return instanceIds, instanceTags, err
 	}
 
 	for _, reserv := range resp.Reservations {
 		for _, inst := range reserv.Instances {
 			instanceIds = append(instanceIds, inst.InstanceId)
+			instanceTagList = append(instanceTagList, inst.Tags...)
 		}
 	}
 
-	return instanceIds, nil
+	for _, v := range instanceTagList {
+		if *v.Key == lockedByTag {
+			instanceTags[*v.Key] = *v.Value
+		}
+
+		if *v.Key == lockedUntilTag {
+			instanceTags[*v.Key] = *v.Value
+		}
+
+		if len(instanceTags) == 2 {
+			break
+		}
+	}
+
+	// TODO Just testing sutff
+	return instanceIds, instanceTags, nil
 }
 
 // GetUniqueTags returns a slice of unique tags.

@@ -64,12 +64,18 @@ spec:
             properties:
               instances:
                 type: integer
+              locked_by:
+                type: string
+              locked_until:
+                type: string
               running:
                 type: integer
               status:
                 type: string
             required:
             - instances
+            - locked_by
+            - locked_until
             - running
             - status
             type: object

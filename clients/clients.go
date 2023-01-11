@@ -32,8 +32,8 @@ type ResourceStatus struct {
 // CloudResource provides generic Resource interface. A Resource is a group of instances which
 // can be started or stopped. The interface also requires a method to list their statuses.
 type CloudResource interface {
-	Start() error
-	Stop() error
+	Start(uid, endAt string) error
+	Stop(uid string) error
 	Status() (ResourceStatus, error)
 }
 

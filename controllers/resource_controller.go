@@ -79,24 +79,26 @@ func (r *ResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 	if resource.Spec.Booked {
 		if status != clients.StatusRunning {
-			if err := cloudResource.Start(); err != nil {
+			if err := cloudResource.Start(resource.Status.LockedBy, resource.Status.LockedUntil); err != nil {
 				log.Error(err, "Error starting resource instances")
-				return ctrl.Result{}, err
+				return ctrl.Result{RequeueAfter: time.Duration(time.Second * 60)}, err
 			}
 		}
 	} else {
 		if status == clients.StatusRunning {
-			if err := cloudResource.Stop(); err != nil {
+			if err := cloudResource.Stop(resource.Status.LockedBy); err != nil {
 				log.Error(err, "Error stopping resource instances")
-				return ctrl.Result{}, err
+				return ctrl.Result{RequeueAfter: time.Duration(time.Second * 60)}, err
 			}
 		}
 	}
 
 	resource.Status = managerv1.ResourceStatus{
-		Instances: rStat.Available,
-		Running:   rStat.Running,
-		Status:    status,
+		LockedBy:    string(resource.ObjectMeta.UID),
+		LockedUntil: resource.Status.LockedUntil,
+		Instances:   rStat.Available,
+		Running:     rStat.Running,
+		Status:      status,
 	}
 
 	err = r.Status().Update(ctx, &resource)

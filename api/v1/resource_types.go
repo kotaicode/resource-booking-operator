@@ -29,9 +29,11 @@ type ResourceSpec struct {
 
 // ResourceStatus defines the observed state of Resource
 type ResourceStatus struct {
-	Instances int    `json:"instances"`
-	Running   int    `json:"running"`
-	Status    string `json:"status"`
+	Instances   int    `json:"instances"`
+	Running     int    `json:"running"`
+	Status      string `json:"status"`
+	LockedBy    string `json:"locked_by"`
+	LockedUntil string `json:"locked_until"`
 }
 
 //+kubebuilder:object:root=true
