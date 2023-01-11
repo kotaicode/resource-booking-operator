@@ -116,9 +116,6 @@ func updateResource(r *BookingReconciler, ctx context.Context, resources *manage
 		case managerv1.BookingInProgress:
 			rs.Status.LockedBy = string(booking.ObjectMeta.UID)
 			rs.Status.LockedUntil = booking.Spec.EndAt
-		case managerv1.BookingFinished:
-			rs.Status.LockedBy = ""
-			rs.Status.LockedUntil = ""
 		}
 
 		err = r.Status().Update(ctx, &rs)
