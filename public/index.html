@@ -145,9 +145,26 @@
 <body>
     <div class="wrapper">
         <hgroup class="title-group">
-            <h1 class="title">Kubernetes Resource Booking Operator</h1>
+            <h1 class="title">Resource Booking Operator</h1>
             <h3 class="subtitle">Cloud resource scheduling using Kubernetes custom resources</h3>
         </hgroup>
+
+        <section>
+            <div>
+                <p>
+                   Easily start cloud resources such as instances and databases when you need them, and stop them automatically to reduce cloud cost.
+                </p>
+                <p>
+                  You don't need your databases at night? Create a schedule to stop them over night, and start them in the morning.
+                </p>
+                <p>
+                  You need your BI instance only when the big reporting is due? Only start it on demand, make sure it is off when not needed.
+                </p>
+                <p>
+                  Easily accessible directly from your kubernetes controlplane, leveraging the extensibility of the Kubernetes API 
+                </p>
+            </div>
+        </section>
 
         <section class="video-wrapper">
             <video class="video" autoplay muted loop>
@@ -160,19 +177,19 @@
             <div class="feature">
                 <span class="material-symbols-outlined">memory</span>
                 <p>
-                    Automatically start and stop cloud resources by creating the custom Booking type in your Kubernetes cluster.
+                    Automatically start and stop cloud resources by using the custom Booking type in your Kubernetes cluster.
                 </p>
             </div>
             <div class="feature">
                 <span class="material-symbols-outlined">savings</span>
                 <p>
-                    Reduce cloud operating costs by using on-demand scheduling of cloud resources. Stops resources when they are no longer required.
+                    Reduce cloud operating costs by using on-demand scheduling of resources. Stops resources when they are no longer required.
                 </p>
             </div>
             <div class="feature">
                 <span class="material-symbols-outlined">extension</span>
                 <p>
-                    Extensible, built on top of Kubernetes, Opensource, open for contributions.
+                    Extensible, built on top of Kubernetes. Opensource, open for contributions: new cloud providers, new resource types...
                 </p>
             </div>
         </section>
