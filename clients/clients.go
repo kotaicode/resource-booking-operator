@@ -4,6 +4,7 @@ package clients
 import (
 	"errors"
 	"flag"
+	"os"
 
 	managerv1 "github.com/kotaicode/resource-booking-operator/api/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -39,8 +40,17 @@ type CloudResource interface {
 var kubeconfig string
 
 func init() {
-	flag.StringVar(&kubeconfig, "kubeconfig", "", "Path to Kubernetes config file")
-	flag.Parse()
+	// Check for kube config. Priority is:
+	// 1. --kubeconfig flag.
+	// 2. KUBECONFIG env variable
+	// 3. Default = /.kube/config
+	kubeconfig = flag.Lookup("kubeconfig").Value.String()
+	if kubeconfig == "" {
+		kubeconfig, _ = os.LookupEnv("KUBECONFIG")
+		if kubeconfig == "" {
+			kubeconfig = "/.kube/config"
+		}
+	}
 }
 
 // ResourceFactory generates structs that abide by the CloudResource interface.
@@ -63,9 +73,8 @@ func GetClient() (client.Client, error) {
 	var err error
 	var config *rest.Config
 
-	if kubeconfig == "" {
-		config, err = rest.InClusterConfig()
-	} else {
+	config, err = rest.InClusterConfig()
+	if err != nil {
 		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
 	}
 
