@@ -18,13 +18,14 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
+	managerv1 "github.com/kotaicode/resource-booking-operator/api/v1"
+	"github.com/kotaicode/resource-booking-operator/clients"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	managerv1 "github.com/kotaicode/resource-booking-operator/api/v1"
 )
 
 // ResourceMonitorReconciler reconciles a ResourceMonitor object
@@ -50,7 +51,10 @@ func (r *ResourceMonitorReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	_ = log.FromContext(ctx)
 
 	// TODO(user): your logic here
-
+	uniqueTags, err := clients.GetUniqueTags()
+	if err != nil {
+		fmt.Println(uniqueTags)
+	}
 	return ctrl.Result{}, nil
 }
 
