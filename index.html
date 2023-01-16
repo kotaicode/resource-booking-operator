@@ -31,7 +31,7 @@
         }
 
         .wrapper {
-            max-width: 980px;
+            max-width: 1180px;
             margin: 0 auto;
         }
 
@@ -179,11 +179,18 @@
         </section>
 
         <section class="video-wrapper">
-            <video class="video" autoplay muted loop>
-                <source src="screenshare.mp4" type="video/mp4">
+            <video class="video" autoplay muted loop crossorigin="anonymous">
+                <source src="public/screenshare.mov" type="video/mp4">
                 Your browser does not support video tag
+
+                <track
+                  label="English"
+                  kind="subtitles"
+                  srclang="en"
+                  src="public/captions-en.vtt"
+                  default />
             </video>
-        </section>
+          </section>
 
         <section class="features-wrapper">
             <div class="feature">
@@ -213,7 +220,7 @@
 
         <footer>
             <a href="https://kotaico.de" target="_blank">
-                <img alt="Kotaicode" id="logo" src="bird_outline_nogaps_blue_notext.svg">
+                <img alt="Kotaicode" id="logo" src="public/bird_outline_nogaps_blue_notext.svg">
             </a>
         </footer>
     </div>
