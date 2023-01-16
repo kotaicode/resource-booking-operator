@@ -3,7 +3,6 @@
 package clients
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
