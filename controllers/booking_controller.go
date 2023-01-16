@@ -99,7 +99,6 @@ func updateResource(r *BookingReconciler, ctx context.Context, resources *manage
 	log := log.FromContext(ctx)
 
 	for _, rs := range resources.Items {
-
 		rs.Spec.Booked = booking.Status.Status == managerv1.BookingInProgress
 
 		err := r.Update(ctx, &rs)
@@ -107,16 +106,22 @@ func updateResource(r *BookingReconciler, ctx context.Context, resources *manage
 			log.Error(err, "Error updating resource spec")
 		}
 
-		switch booking.Status.Status {
-		case managerv1.BookingInProgress:
-			rs.Status.LockedBy = string(booking.ObjectMeta.UID)
-			rs.Status.LockedUntil = booking.Spec.EndAt
-		}
+		updateResourceStatus(r, ctx, &rs, booking)
+	}
+}
 
-		err = r.Status().Update(ctx, &rs)
-		if err != nil {
-			log.Error(err, "Error updating resource status")
-		}
+func updateResourceStatus(r *BookingReconciler, ctx context.Context, rs *managerv1.Resource, booking *managerv1.Booking) {
+	log := log.FromContext(ctx)
+
+	switch booking.Status.Status {
+	case managerv1.BookingInProgress:
+		rs.Status.LockedBy = string(booking.ObjectMeta.UID)
+		rs.Status.LockedUntil = booking.Spec.EndAt
+	}
+
+	err := r.Status().Update(ctx, rs)
+	if err != nil {
+		log.Error(err, "Error updating resource status")
 	}
 }
 
