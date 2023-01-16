@@ -181,7 +181,7 @@ func (r *EC2Resource) unlock(instanceIDs []*string) error {
 
 // getInstanceDetails returns instance IDs from a given name tag. Basically wrap the EC2 call with a filter of our default tag identificator.
 func (r *EC2Resource) getInstanceDetails(nameTag string) (instanceDetails, error) {
-	var details instanceDetails
+	details := instanceDetails{Tags: make(map[string]string)}
 
 	var instanceTagList []*ec2.Tag
 
