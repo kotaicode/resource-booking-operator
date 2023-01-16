@@ -138,7 +138,7 @@ func (r *EC2Resource) canManage(uid string, instanceTags map[string]string) (boo
 
 		if instanceTags[lockedByTag] != uid && time.Now().Before(d) {
 			m := "Resource is locked by %s. The lock expires at %s."
-			err = errors.New(fmt.Sprintf(m, instanceTags[lockedByTag], instanceTags[lockedUntilTag]))
+			err = fmt.Errorf(m, instanceTags[lockedByTag], instanceTags[lockedUntilTag])
 			return false, err
 		}
 	}
