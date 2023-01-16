@@ -33,8 +33,8 @@ type EC2Resource struct {
 }
 
 type instanceDetails struct {
-    IDs []*string
-    Tags map[string]string
+	IDs  []*string
+	Tags map[string]string
 }
 
 var mySession *session.Session = session.Must(session.NewSessionWithOptions(session.Options{
@@ -43,17 +43,15 @@ var mySession *session.Session = session.Must(session.NewSessionWithOptions(sess
 var ec2Client *ec2.EC2 = ec2.New(mySession)
 
 // Start makes a call through the EC2 client to start resource instances by their IDs.
-func (r *EC2Resource) Start(uid, endAt string) error {
-	// TODO ^ Can we cleanup the params, is there a simpler, non-polluting way?
-    // TODO Or change name
+func (r *EC2Resource) Start(startInput ResourceStartInput) error {
 	instances, err := r.getInstanceDetails(r.NameTag)
 	if err != nil {
 		return err
 	}
 
-    if _, err = r.canManage(uid, instances.Tags); err != nil {
-        return err
-    }
+	if _, err = r.canManage(startInput.UID, instances.Tags); err != nil {
+		return err
+	}
 
 	_, err = ec2Client.StartInstances(&ec2.StartInstancesInput{
 		InstanceIds: instances.IDs,
@@ -62,7 +60,7 @@ func (r *EC2Resource) Start(uid, endAt string) error {
 		return err
 	}
 
-	err = r.lock(uid, endAt, instances.IDs)
+	err = r.lock(startInput.UID, startInput.EndAt, instances.IDs)
 	if err != nil {
 		return err
 	}
@@ -71,15 +69,15 @@ func (r *EC2Resource) Start(uid, endAt string) error {
 }
 
 // Stop makes a call through the EC2 client to stop the instances that belong to the resource.
-func (r *EC2Resource) Stop(uid string) error {
+func (r *EC2Resource) Stop(stopInput ResourceStopInput) error {
 	instances, err := r.getInstanceDetails(r.NameTag)
 	if err != nil {
 		return err
 	}
 
-    if _, err = r.canManage(uid, instances.Tags); err != nil {
-        return err
-    }
+	if _, err = r.canManage(stopInput.UID, instances.Tags); err != nil {
+		return err
+	}
 
 	_, err = ec2Client.StopInstances(&ec2.StopInstancesInput{
 		InstanceIds: instances.IDs,
@@ -98,9 +96,9 @@ func (r *EC2Resource) Stop(uid string) error {
 
 // Status returns the current summary of a given resource instance statuses.
 // It makes a call through the EC2 client with a given set of instance IDs and summarises their status (active vs running).
-func (r *EC2Resource) Status() (ResourceStatus, error) {
+func (r *EC2Resource) Status() (ResourceStatusOutput, error) {
 	includeAll := true
-	var rst ResourceStatus
+	var rst ResourceStatusOutput
 
 	instances, err := r.getInstanceDetails(r.NameTag)
 	if err != nil {
@@ -142,7 +140,7 @@ func (r *EC2Resource) canManage(uid string, instanceTags map[string]string) (boo
 		}
 	}
 
-    return true, nil
+	return true, nil
 }
 
 // lock sets locking tags to the resource instances. Tags are:
@@ -183,7 +181,7 @@ func (r *EC2Resource) unlock(instanceIDs []*string) error {
 
 // getInstanceDetails returns instance IDs from a given name tag. Basically wrap the EC2 call with a filter of our default tag identificator.
 func (r *EC2Resource) getInstanceDetails(nameTag string) (instanceDetails, error) {
-    var details instanceDetails
+	var details instanceDetails
 
 	var instanceTagList []*ec2.Tag
 
@@ -208,7 +206,7 @@ func (r *EC2Resource) getInstanceDetails(nameTag string) (instanceDetails, error
 		}
 	}
 
-    // For now Don't care about the edge case where two instances might theoretically have different lock tags
+	// For now Don't care about the edge case where two instances might theoretically have different lock tags
 	for _, v := range instanceTagList {
 		if *v.Key == lockedByTag || *v.Key == lockedUntilTag {
 			details.Tags[*v.Key] = *v.Value

@@ -24,17 +24,27 @@ const (
 	StatusPending string = "PENDING"
 )
 
-// ResourceStatus holds the status summary of the resource.
-type ResourceStatus struct {
+// ResourceStatusOutput holds the status summary of the resource.
+type ResourceStatusOutput struct {
 	Available, Running int
+}
+
+// ResourceStartInput stores data that is used for book-keeping during the starting of the resource
+type ResourceStartInput struct {
+	UID, EndAt string
+}
+
+// ResourceStartInput stores data that is used for book-keeping during the stopping of the resource
+type ResourceStopInput struct {
+	UID string
 }
 
 // CloudResource provides generic Resource interface. A Resource is a group of instances which
 // can be started or stopped. The interface also requires a method to list their statuses.
 type CloudResource interface {
-	Start(uid, endAt string) error
-	Stop(uid string) error
-	Status() (ResourceStatus, error)
+	Start(startInput ResourceStartInput) error
+	Stop(stopInput ResourceStopInput) error
+	Status() (ResourceStatusOutput, error)
 }
 
 var kubeconfig string

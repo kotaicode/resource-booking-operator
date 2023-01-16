@@ -107,11 +107,6 @@ func updateResource(r *BookingReconciler, ctx context.Context, resources *manage
 			log.Error(err, "Error updating resource spec")
 		}
 
-		// TODO Two things to check out
-		// 1. Mixing status update and spec update one after another has bad side effects (the second call does not work?)
-		//    which might be because the pointer is populated with a fresh data from the server as a result from the call.
-		// 2. Not sure if status update should be done here, though we need it that way for our use case.
-
 		switch booking.Status.Status {
 		case managerv1.BookingInProgress:
 			rs.Status.LockedBy = string(booking.ObjectMeta.UID)
