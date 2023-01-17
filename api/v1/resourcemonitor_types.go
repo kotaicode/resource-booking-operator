@@ -29,7 +29,8 @@ type ResourceMonitorSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Foo is an example field of ResourceMonitor. Edit resourcemonitor_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Foo  string `json:"foo,omitempty"`
+	Type string `json:"type"`
 }
 
 // ResourceMonitorStatus defines the observed state of ResourceMonitor

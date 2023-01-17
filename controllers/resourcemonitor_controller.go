@@ -18,10 +18,11 @@ package controllers
 
 import (
 	"context"
-	"fmt"
+	"time"
 
 	managerv1 "github.com/kotaicode/resource-booking-operator/api/v1"
 	"github.com/kotaicode/resource-booking-operator/clients"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -33,6 +34,13 @@ type ResourceMonitorReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
+
+const (
+	ResourceName      = "resource"
+	ResourceTag       = ""
+	ResourceType      = "ec2"
+	ResourceNamespace = "default"
+)
 
 //+kubebuilder:rbac:groups=manager.kotaico.de,resources=resourcemonitors,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=manager.kotaico.de,resources=resourcemonitors/status,verbs=get;update;patch
@@ -47,15 +55,87 @@ type ResourceMonitorReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
-func (r *ResourceMonitorReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
 
-	// TODO(user): your logic here
+func difference(slice1 []string, slice2 []string) []string {
+	var diff []string
+
+	// Loop two times, first to find slice1 strings not in slice2,
+	// second loop to find slice2 strings not in slice1
+	for i := 0; i < 2; i++ {
+		for _, s1 := range slice1 {
+			found := false
+			for _, s2 := range slice2 {
+				if s1 == s2 {
+					found = true
+					break
+				}
+			}
+			// String not found. We add it to return slice
+			if !found {
+				diff = append(diff, s1)
+			}
+		}
+		// Swap the slices, only if it was the first loop
+		if i == 0 {
+			slice1, slice2 = slice2, slice1
+		}
+	}
+
+	return diff
+}
+
+func (r *ResourceMonitorReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	log := log.FromContext(ctx)
+	var clusterResources []string
+
+	log.Info("Reconcile resource monitor")
+
+	var resourceMonitor managerv1.ResourceMonitor
+	if err := r.Get(ctx, req.NamespacedName, &resourceMonitor); err != nil {
+		log.Error(err, "Error getting resource monitor")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	var resources managerv1.ResourceList
+	if err := r.List(context.Background(), &resources); err != nil {
+		log.Error(err, "Error listing resource monitor")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	for _, rs := range resources.Items {
+		clusterResources = append(clusterResources, rs.Spec.Tag)
+	}
+
 	uniqueTags, err := clients.GetUniqueTags()
 	if err != nil {
-		fmt.Println(uniqueTags)
+		//TODO: condition not satisfied ?
+		log.Info("getting unique tags success")
 	}
-	return ctrl.Result{}, nil
+	diff := difference(uniqueTags, clusterResources)
+
+	resource := &managerv1.Resource{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "manager.kotaico.de/v1",
+			Kind:       "Resource",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      ResourceName,
+			Namespace: ResourceNamespace,
+		},
+		Spec: managerv1.ResourceSpec{
+			Booked: false,
+			Tag:    ResourceTag,
+			Type:   ResourceType,
+		},
+	}
+
+	for _, tag := range diff {
+		resource.ObjectMeta.Name = tag
+		resource.Spec.Tag = tag
+		r.Create(ctx, resource)
+	}
+
+	return ctrl.Result{RequeueAfter: time.Duration(time.Second * 15)}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
