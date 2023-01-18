@@ -54,15 +54,13 @@ const (
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
 
-func difference(slice1 []string, slice2 []string) []string {
-	var diff []string
+func getDistinctTags(uniqueTags []string, clusterResources []string) []string {
+	var distinctTags []string
 
-	// Loop two times, first to find slice1 strings not in slice2,
-	// second loop to find slice2 strings not in slice1
 	for i := 0; i < 2; i++ {
-		for _, s1 := range slice1 {
+		for _, s1 := range uniqueTags {
 			found := false
-			for _, s2 := range slice2 {
+			for _, s2 := range clusterResources {
 				if s1 == s2 {
 					found = true
 					break
@@ -70,16 +68,16 @@ func difference(slice1 []string, slice2 []string) []string {
 			}
 			// String not found. We add it to return slice
 			if !found {
-				diff = append(diff, s1)
+				distinctTags = append(distinctTags, s1)
 			}
 		}
 		// Swap the slices, only if it was the first loop
 		if i == 0 {
-			slice1, slice2 = slice2, slice1
+			uniqueTags, clusterResources = clusterResources, uniqueTags
 		}
 	}
 
-	return diff
+	return distinctTags
 }
 
 func (r *ResourceMonitorReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
@@ -109,9 +107,9 @@ func (r *ResourceMonitorReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		//TODO: condition not satisfied ?
 		log.Info("getting unique tags success")
 	}
-	diff := difference(uniqueTags, clusterResources)
+	nonMatchingTags := getDistinctTags(uniqueTags, clusterResources)
 
-	for _, tag := range diff {
+	for _, tag := range nonMatchingTags {
 		resource := &managerv1.Resource{
 			TypeMeta: metav1.TypeMeta{
 				APIVersion: "manager.kotaico.de/v1",
@@ -127,6 +125,7 @@ func (r *ResourceMonitorReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 				Type:   ResourceType,
 			},
 		}
+		log.Info("creating resources")
 		r.Create(ctx, resource)
 	}
 
