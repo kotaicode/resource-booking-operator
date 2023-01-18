@@ -36,8 +36,6 @@ type ResourceMonitorReconciler struct {
 }
 
 const (
-	ResourceName      = "resource"
-	ResourceTag       = ""
 	ResourceType      = "ec2"
 	ResourceNamespace = "default"
 )
@@ -113,25 +111,22 @@ func (r *ResourceMonitorReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 	diff := difference(uniqueTags, clusterResources)
 
-	resource := &managerv1.Resource{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "manager.kotaico.de/v1",
-			Kind:       "Resource",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      ResourceName,
-			Namespace: ResourceNamespace,
-		},
-		Spec: managerv1.ResourceSpec{
-			Booked: false,
-			Tag:    ResourceTag,
-			Type:   ResourceType,
-		},
-	}
-
 	for _, tag := range diff {
-		resource.ObjectMeta.Name = tag
-		resource.Spec.Tag = tag
+		resource := &managerv1.Resource{
+			TypeMeta: metav1.TypeMeta{
+				APIVersion: "manager.kotaico.de/v1",
+				Kind:       "Resource",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      tag,
+				Namespace: ResourceNamespace,
+			},
+			Spec: managerv1.ResourceSpec{
+				Booked: false,
+				Tag:    tag,
+				Type:   ResourceType,
+			},
+		}
 		r.Create(ctx, resource)
 	}
 
