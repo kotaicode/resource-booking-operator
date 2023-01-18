@@ -55,8 +55,12 @@
         body {
             width: auto;
             color: #538BDB;
-            background: #fff;
             font-family: 'Lato', sans-serif;
+            background-color: #FFFFFF;
+            background-image: url("assets/img/blob-scatter-haikei-1.svg");
+            background-attachment: fixed;
+            background-size: cover;
+            padding: 0 1%;
         }
 
         .wrapper {
@@ -99,6 +103,10 @@
             flex-wrap: wrap;
             justify-content: space-evenly;
             align-items: stretch;
+            border: solid 2px;
+            border-radius: 18px;
+            padding: 25px 0 8px;
+            background: #fff;
         }
 
         .intro-bites li {
@@ -132,34 +140,30 @@
         }
 
         .feature {
-            width: 30%;
+            width: 26%;
             height: 200px;
+            padding: 1%;
             text-align: center;
+            background: #fff;
+            border-radius: 50px;
+            border: solid 2px;
         }
         
         .feature > p {
-            font-size: 1.35em;
-            font-weight: 300;
+            font-size: 1.1em;
+            font-weight: 400;
         }
 
         .material-symbols-outlined {
           font-family: 'Material Symbols Outlined';
-          font-weight: normal;
-          font-style: normal;
-          font-size: 2.5em;
-          display: inline-block;
-          line-height: 1;
-          text-transform: none;
-          letter-spacing: normal;
-          word-wrap: normal;
-          white-space: nowrap;
-          direction: ltr;
+          font-size: 3em;
+          font-variation-settings: 'opsz' 48, 'wght' 300, 'fill' 0, 'grad' 0;
         }
 
         .actions-box > a {
             font-family: inherit;
             font-size: 1.5em;
-            margin: 50px 1em;
+            margin: 80px 1em 40px;;
             padding: 10px 15px;
             color: #538BDB;
             background: #fff;
@@ -175,15 +179,23 @@
             text-align: center;
         }
 
+        .logo-wrapper {
+            display: inline-block;
+            width: 10em;
+            height: 10em;
+            border-radius: 5em;
+            background-color: #fff;
+        }
+
         #logo {
             width: 4em;
-            margin: 50px 0 5px;
+            margin: 20px 0 0px;
         }
 
         @media (prefers-color-scheme: dark) {
             body {
                 color: #99b9e5;
-                background: #404346;
+                background-color: #404346;
             }
 
             .title-group > h1 {
@@ -208,7 +220,7 @@
 
         @media (prefers-color-scheme: light) {
             body {
-                background: #fff;
+                background-color: #fff;
             }
 
             .title-group > h1 {
@@ -242,16 +254,16 @@
         <section class="intro-bites">
             <ul>
                 <li>
-                   Easily start cloud resources such as instances and databases when you need them, and stop them automatically to reduce cost.
+                   Easily start cloud resources such as instances and databases when you need them, then stop them automatically to reduce cost.
                 </li>
                 <li>
-                  You don't need your databases at night? Create a schedule to stop them over night, and start them in the morning.
+                    You don't use your databases at night? Create a schedule to stop them overnight, and start them in the morning.
                 </li>
                 <li>
-                  You need your BI instance only when the big reporting is due? Only start it on demand, make sure it is off when not needed.
+                    You need your BI instance only when the big reporting is due? Start it only on demand, make sure it is off when not needed.
                 </li>
                 <li>
-                  Easily accessible directly from your kubernetes controlplane, leveraging the extensibility of the Kubernetes API .
+                    Easily accessible directly from your Kubernetes control plane, leveraging the extensibility of the Kubernetes API.
                 </li>
             </ul>
         </section>
@@ -280,13 +292,13 @@
             <div class="feature">
                 <span class="material-symbols-outlined">savings</span>
                 <p>
-                    Reduce cloud operating costs by using on-demand scheduling of resources. Stops resources when they are no longer required.
+                    Reduce cloud operating costs by using on-demand scheduling of resources. Stop resources automatically when they are no longer required.
                 </p>
             </div>
             <div class="feature">
                 <span class="material-symbols-outlined">extension</span>
                 <p>
-                    Extensible, built on top of Kubernetes. Opensource, open for contributions: new cloud providers, new resource types...
+                    Extensible, built on top of Kubernetes. Open Source and welcoming contributions on cloud providers and new resource types.
                 </p>
             </div>
         </section>
@@ -297,7 +309,7 @@
         </section>
 
         <footer>
-            <a href="https://kotaico.de" target="_blank">
+            <a href="https://kotaico.de" target="_blank" class="logo-wrapper">
                 <img alt="Kotaicode" id="logo" src="assets/img/bird_outline_nogaps_blue_notext.svg">
             </a>
         </footer>
