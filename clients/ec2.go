@@ -5,7 +5,6 @@ package clients
 import (
 	"fmt"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
@@ -19,10 +18,8 @@ const (
 
 	// DefaultTagKey is used to store the tag which marks the instance as managed by the operator
 	defaultTagKey         string = "resource-booking/application"
-	resourceMonitorTagKey string = "resource-booking/application"
+	resourceMonitorTagKey string = "resource-booking/managed"
 )
-
-var uniqueTags []string
 
 // Resource represents a collection of EC2 instances grouped by a common "resource-booking/application" tag.
 type EC2Resource struct {
@@ -127,47 +124,41 @@ func (r *EC2Resource) getInstanceIds(nameTag string) ([]*string, error) {
 	return instanceIds, nil
 }
 
-func removeDuplicateTags(strSlice []string) []string {
-	allKeys := make(map[string]bool)
-	list := []string{}
-	for _, item := range strSlice {
-		if _, value := allKeys[item]; !value {
-			allKeys[item] = true
-			list = append(list, item)
-		}
-	}
-	return list
-}
-
+// GetUniqueTags returns a slice of unique tags.
+// It makes a call through the EC2 client to get all the unique tags in the cluster.
 func GetUniqueTags() ([]string, error) {
-	runningInstances, err := ec2Client.DescribeInstances(&ec2.DescribeInstancesInput{
+	var uniqueTags []string
 
-		Filters: []*ec2.Filter{
-			{
-				Name: aws.String("tag:resource-booking/managed"),
-				Values: []*string{
-					aws.String("true"),
-				},
-			},
-		},
+	// Prepare filters
+	tagKey := fmt.Sprintf("tag:%s", resourceMonitorTagKey)
+	tagValue := "true"
+	nameFilter := &ec2.Filter{
+		Name:   &tagKey,
+		Values: []*string{&tagValue},
+	}
+	tagMap := make(map[string]bool)
+	resourceBookingInstances, err := ec2Client.DescribeInstances(&ec2.DescribeInstancesInput{
+		Filters: []*ec2.Filter{nameFilter},
 	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	for _, reservation := range runningInstances.Reservations {
+	for _, reservation := range resourceBookingInstances.Reservations {
 		for _, instance := range reservation.Instances {
 			resourceBookingTags := instance.Tags
 			for _, v := range resourceBookingTags {
 				if *v.Key == defaultTagKey {
-					uniqueTags = append(uniqueTags, *v.Value)
+					tagMap[*v.Value] = true
 				}
 			}
 		}
 	}
 
-	uniqueTags = removeDuplicateTags(uniqueTags)
+	for tag := range tagMap {
+		uniqueTags = append(uniqueTags, tag)
+	}
 	return uniqueTags, nil
 
 }
