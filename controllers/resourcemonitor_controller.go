@@ -104,7 +104,7 @@ func (r *ResourceMonitorReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 	uniqueTags, err := clients.GetUniqueTags()
 	if err != nil {
-		log.Error(err,"Error getting unique tags")
+		log.Error(err, "Error getting unique tags")
 	}
 	nonMatchingTags := getDistinctTags(uniqueTags, clusterResources)
 
@@ -125,7 +125,7 @@ func (r *ResourceMonitorReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			},
 		}
 		log.Info("creating resources")
-		err :=r.Create(ctx, resource)
+		err := r.Create(ctx, resource)
 		if err != nil {
 			log.Error(err, "Error creating resources")
 		}
