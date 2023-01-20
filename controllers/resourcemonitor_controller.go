@@ -40,46 +40,35 @@ const (
 	ResourceNamespace = "default"
 )
 
+// sliceToMap returns map, used to convert slice to map
+func sliceToMap(slice []string) map[string]bool { //TODO: give a better name
+	m := make(map[string]bool)
+	for _, s := range slice {
+		m[s] = true
+	}
+	return m
+}
+
+// diff returns a slice of strings, used to compare two maps.
+func diff(m1, m2 map[string]bool) []string { //TODO: give a better name
+	slice := make([]string, 0, len(m1))
+	for k := range m1 {
+		if _, ok := m2[k]; !ok {
+			slice = append(slice, k)
+		}
+	}
+	return slice
+}
+
 //+kubebuilder:rbac:groups=manager.kotaico.de,resources=resourcemonitors,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=manager.kotaico.de,resources=resourcemonitors/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=manager.kotaico.de,resources=resourcemonitors/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the ResourceMonitor object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
+
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
-
-func getDistinctTags(uniqueTags []string, clusterResources []string) []string {
-	var distinctTags []string
-
-	for i := 0; i < 2; i++ {
-		for _, s1 := range uniqueTags {
-			found := false
-			for _, s2 := range clusterResources {
-				if s1 == s2 {
-					found = true
-					break
-				}
-			}
-			// String not found. We add it to return slice
-			if !found {
-				distinctTags = append(distinctTags, s1)
-			}
-		}
-		// Swap the slices, only if it was the first loop
-		if i == 0 {
-			uniqueTags, clusterResources = clusterResources, uniqueTags
-		}
-	}
-
-	return distinctTags
-}
-
 func (r *ResourceMonitorReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
 	var clusterResources []string
@@ -106,7 +95,12 @@ func (r *ResourceMonitorReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	if err != nil {
 		log.Error(err, "Error getting unique tags")
 	}
-	nonMatchingTags := getDistinctTags(uniqueTags, clusterResources)
+	uniqueTagsMap := sliceToMap(uniqueTags)
+	clusterResourcesMap := sliceToMap(clusterResources)
+
+	slice1 := diff(uniqueTagsMap, clusterResourcesMap) //TODO: give a better name
+	slice2 := diff(clusterResourcesMap, uniqueTagsMap) //TODO: give a better name
+	nonMatchingTags := append(slice1, slice2...)
 
 	for _, tag := range nonMatchingTags {
 		resource := &managerv1.Resource{

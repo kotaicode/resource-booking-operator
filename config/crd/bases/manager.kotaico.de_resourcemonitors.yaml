@@ -35,10 +35,10 @@ spec:
           spec:
             description: ResourceMonitorSpec defines the desired state of ResourceMonitor
             properties:
-              foo:
-                description: Foo is an example field of ResourceMonitor. Edit resourcemonitor_types.go
-                  to remove/update
+              type:
                 type: string
+            required:
+            - type
             type: object
           status:
             description: ResourceMonitorStatus defines the observed state of ResourceMonitor
