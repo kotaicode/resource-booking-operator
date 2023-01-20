@@ -130,7 +130,7 @@ func GetUniqueTags() ([]string, error) {
 	var uniqueTags []string
 
 	// Prepare filters
-	tagKey := fmt.Sprintf("tag:%s", resourceMonitorTagKey)
+	tagKey := "tag:" + resourceMonitorTagKey
 	tagValue := "true"
 	nameFilter := &ec2.Filter{
 		Name:   &tagKey,

@@ -9,4 +9,3 @@ metadata:
     app.kubernetes.io/created-by: resource-booking-operator
   name: resourcemonitor-sample
 spec:
-  # TODO(user): Add fields here
