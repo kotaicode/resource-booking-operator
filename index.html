@@ -83,8 +83,11 @@
         }
 
         .title-group > h3 {
+            display: inline-block;
             font-size: 1.8em;
             font-weight: 500;
+            border-radius: 0.75em;
+            padding: 0 10px;
         }
 
         .actions-box {
@@ -183,14 +186,14 @@
             display: flex;
             justify-content: center;
             margin: 0 auto;
-            width: 8em;
-            height: 8em;
-            border-radius: 4em;
+            width: 6em;
+            height: 6em;
+            border-radius: 3em;
             background-color: #fff;
         }
 
         #logo {
-            width: 4em;
+            width: 3em;
         }
 
         @media (prefers-color-scheme: dark) {
@@ -213,6 +216,10 @@
                 color: #404346;
                 -webkit-text-stroke: 3px #99b9e5;
                 text-stroke: 3px #99b9e5;
+            }
+
+            .title-group > h3 {
+                background: #404346;
             }
 
             .actions-box > a {
@@ -250,6 +257,10 @@
                 color: #fff;
                 -webkit-text-stroke: 3px #538BDB;
                 text-stroke: 3px #538BDB;
+            }
+
+            .title-group > h3 {
+                background: #fff;
             }
 
             .actions-box > a {
