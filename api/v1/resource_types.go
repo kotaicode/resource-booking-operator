@@ -22,9 +22,11 @@ import (
 
 // ResourceSpec defines the desired state of Resource
 type ResourceSpec struct {
-	Booked bool   `json:"booked"`
-	Tag    string `json:"tag"`
-	Type   string `json:"type"`
+	BookedBy    string `json:"booked_by"`
+	BookedUntil string `json:"booked_until"`
+
+	Tag  string `json:"tag"`
+	Type string `json:"type"`
 }
 
 // ResourceStatus defines the observed state of Resource
@@ -38,7 +40,7 @@ type ResourceStatus struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
-//+kubebuilder:printcolumn:JSONPath=".spec.booked",name="BOOKED",type="boolean"
+//+kubebuilder:printcolumn:JSONPath=".status.locked_by",name="LOCKED BY",type="string"
 //+kubebuilder:printcolumn:JSONPath=".status.instances",name="INSTANCES",type="integer"
 //+kubebuilder:printcolumn:JSONPath=".status.running",name="RUNNING",type="integer"
 //+kubebuilder:printcolumn:JSONPath=".status.status",name="STATUS",type="string"

@@ -123,6 +123,8 @@ func (r *EC2Resource) Status() (ResourceStatusOutput, error) {
 		}
 	}
 
+	rst.LockedBy, rst.LockedUntil = instances.Tags[lockedByTag], instances.Tags[lockedUntilTag]
+
 	return rst, nil
 }
 

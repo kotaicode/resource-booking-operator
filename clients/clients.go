@@ -26,7 +26,8 @@ const (
 
 // ResourceStatusOutput holds the status summary of the resource.
 type ResourceStatusOutput struct {
-	Available, Running int
+	Available, Running    int
+	LockedBy, LockedUntil string
 }
 
 // ResourceStartInput stores data that is used for book-keeping during the starting of the resource

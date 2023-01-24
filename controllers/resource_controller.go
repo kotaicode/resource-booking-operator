@@ -77,9 +77,9 @@ func (r *ResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		status = clients.StatusPending
 	}
 
-	if resource.Spec.Booked {
+	if resource.Spec.BookedBy != "" {
 		if status != clients.StatusRunning {
-			startInput := clients.ResourceStartInput{UID: resource.Status.LockedBy, EndAt: resource.Status.LockedUntil}
+			startInput := clients.ResourceStartInput{UID: resource.Spec.BookedBy, EndAt: resource.Spec.BookedUntil}
 			if err := cloudResource.Start(startInput); err != nil {
 				log.Error(err, "Error starting resource instances")
 				return ctrl.Result{RequeueAfter: time.Duration(time.Second * 60)}, nil
@@ -96,8 +96,8 @@ func (r *ResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	resource.Status = managerv1.ResourceStatus{
-		LockedBy:    resource.Status.LockedBy,
-		LockedUntil: resource.Status.LockedUntil,
+		LockedBy:    rStat.LockedBy,
+		LockedUntil: rStat.LockedUntil,
 		Instances:   rStat.Available,
 		Running:     rStat.Running,
 		Status:      status,
