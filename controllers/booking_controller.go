@@ -99,7 +99,12 @@ func updateResource(r *BookingReconciler, ctx context.Context, resources *manage
 	log := log.FromContext(ctx)
 
 	for _, rs := range resources.Items {
-		rs.Spec.BookedBy = booking.Spec.UserID
+		switch booking.Status.Status {
+		case managerv1.BookingFinished:
+			rs.Spec.BookedBy = ""
+		default:
+			rs.Spec.BookedBy = booking.Spec.UserID
+		}
 
 		err := r.Update(ctx, &rs)
 		if err != nil {
