@@ -9,3 +9,4 @@ metadata:
     app.kubernetes.io/created-by: resource-booking-operator
   name: resourcemonitor-sample
 spec:
+  type: ec2
