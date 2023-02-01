@@ -1,0 +1,31 @@
+# permissions for end users to edit resourcemonitors.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: resourcemonitor-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: resource-booking-operator
+    app.kubernetes.io/part-of: resource-booking-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: resourcemonitor-editor-role
+rules:
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - resourcemonitors
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - resourcemonitors/status
+  verbs:
+  - get

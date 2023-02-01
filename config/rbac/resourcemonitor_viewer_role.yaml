@@ -1,0 +1,27 @@
+# permissions for end users to view resourcemonitors.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: resourcemonitor-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: resource-booking-operator
+    app.kubernetes.io/part-of: resource-booking-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: resourcemonitor-viewer-role
+rules:
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - resourcemonitors
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - resourcemonitors/status
+  verbs:
+  - get

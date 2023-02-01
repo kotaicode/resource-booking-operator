@@ -17,7 +17,8 @@ const (
 	statusStopped  int64 = 80
 
 	// DefaultTagKey is used to store the tag which marks the instance as managed by the operator
-	defaultTagKey string = "resource-booking/application"
+	defaultTagKey         string = "resource-booking/application"
+	resourceMonitorTagKey string = "resource-booking/managed"
 )
 
 // Resource represents a collection of EC2 instances grouped by a common "resource-booking/application" tag.
@@ -121,4 +122,43 @@ func (r *EC2Resource) getInstanceIds(nameTag string) ([]*string, error) {
 	}
 
 	return instanceIds, nil
+}
+
+// GetUniqueTags returns a slice of unique tags.
+// It makes a call through the EC2 client to get all the unique tags in the cluster.
+func GetUniqueTags() ([]string, error) {
+	var uniqueTags []string
+
+	// Prepare filters
+	tagKey := "tag:" + resourceMonitorTagKey
+	tagValue := "true"
+	nameFilter := &ec2.Filter{
+		Name:   &tagKey,
+		Values: []*string{&tagValue},
+	}
+	tagMap := make(map[string]bool)
+	resourceBookingInstances, err := ec2Client.DescribeInstances(&ec2.DescribeInstancesInput{
+		Filters: []*ec2.Filter{nameFilter},
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, reservation := range resourceBookingInstances.Reservations {
+		for _, instance := range reservation.Instances {
+			resourceBookingTags := instance.Tags
+			for _, v := range resourceBookingTags {
+				if *v.Key == defaultTagKey {
+					tagMap[*v.Value] = true
+				}
+			}
+		}
+	}
+
+	for tag := range tagMap {
+		uniqueTags = append(uniqueTags, tag)
+	}
+	return uniqueTags, nil
+
 }
