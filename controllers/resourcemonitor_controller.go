@@ -68,13 +68,13 @@ func (r *ResourceMonitorReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 	monitor, err := clients.MonitorFactory(resourceMonitor.Spec.Type)
 	if err != nil {
-		log.Error(err, "Error listing resource monitor")
+		log.Error(err, err.Error())
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	nonMatchingTags, err := monitor.GetNewResources(clusterResources)
 	if err != nil {
-		log.Error(err, "Error listing resource monitor")
+		log.Error(err, err.Error())
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
