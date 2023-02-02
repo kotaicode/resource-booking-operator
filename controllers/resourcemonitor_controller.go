@@ -46,7 +46,7 @@ type ResourceMonitorReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
 func (r *ResourceMonitorReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
-	var clusterResources []string
+	clusterResources := make(map[string]bool)
 
 	log.Info("Reconcile resource monitor")
 
@@ -63,7 +63,7 @@ func (r *ResourceMonitorReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 
 	for _, rs := range resources.Items {
-		clusterResources = append(clusterResources, rs.Spec.Tag)
+		clusterResources[rs.Spec.Tag] = true
 	}
 
 	monitor, err := clients.MonitorFactory(resourceMonitor.Spec.Type)

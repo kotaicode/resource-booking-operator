@@ -128,31 +128,21 @@ func (r *EC2Resource) getInstanceIds(nameTag string) ([]*string, error) {
 	return instanceIds, nil
 }
 
-// sliceToMap returns map, used to convert slice to map
-func sliceToMap(slice []string) map[string]bool { //TODO: give a better name
-	m := make(map[string]bool)
-	for _, s := range slice {
-		m[s] = true
+// GetNewResources returns a list of tags which don't have resources on the cluster
+func (m *EC2Monitor) GetNewResources(clusterResources map[string]bool) ([]string, error) {
+	uniqueTags, err := GetUniqueTags()
+	if err != nil {
+		return nil, err
 	}
-	return m
+
+	slice1, slice2 := setDiff(uniqueTags, clusterResources), setDiff(clusterResources, uniqueTags)
+	nonMatchingTags := append(slice1, slice2...)
+
+	return nonMatchingTags, nil
 }
 
-// diff returns a slice of strings, used to compare two maps.
-func diff(m1, m2 map[string]bool) []string { //TODO: give a better name
-	slice := make([]string, 0, len(m1))
-	for k := range m1 {
-		if _, ok := m2[k]; !ok {
-			slice = append(slice, k)
-		}
-	}
-	return slice
-}
-
-// GetUniqueTags returns a slice of unique tags.
-// It makes a call through the EC2 client to get all the unique tags in the cluster.
-func GetUniqueTags() ([]string, error) {
-	var uniqueTags []string
-
+// GetUniqueTags makes a call through the EC2 client to collect all instance tags and returns a set of them
+func GetUniqueTags() (map[string]bool, error) {
 	// Prepare filters
 	tagKey := "tag:" + resourceMonitorTagKey
 	tagValue := "true"
@@ -180,25 +170,16 @@ func GetUniqueTags() ([]string, error) {
 		}
 	}
 
-	for tag := range tagMap {
-		uniqueTags = append(uniqueTags, tag)
-	}
-	return uniqueTags, nil
-
+	return tagMap, nil
 }
 
-func (m *EC2Monitor) GetNewResources(clusterResources []string) ([]string, error) {
-	uniqueTags, err := GetUniqueTags()
-	if err != nil {
-		return nil, err
+// setDiff returns the difference between two sets
+func setDiff(m1, m2 map[string]bool) []string {
+	slice := make([]string, 0, len(m1))
+	for k := range m1 {
+		if _, ok := m2[k]; !ok {
+			slice = append(slice, k)
+		}
 	}
-
-	uniqueTagsMap := sliceToMap(uniqueTags)
-	clusterResourcesMap := sliceToMap(clusterResources)
-
-	slice1 := diff(uniqueTagsMap, clusterResourcesMap) //TODO: give a better name
-	slice2 := diff(clusterResourcesMap, uniqueTagsMap) //TODO: give a better name
-	nonMatchingTags := append(slice1, slice2...)
-
-	return nonMatchingTags, nil
+	return slice
 }
