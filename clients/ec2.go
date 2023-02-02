@@ -128,7 +128,8 @@ func (r *EC2Resource) getInstanceIds(nameTag string) ([]*string, error) {
 	return instanceIds, nil
 }
 
-// GetNewResources returns a list of tags which don't have resources on the cluster
+// GetNewResources compares the local cluster resources with the ones returned from EC2
+// and gives back a list of resources that need to be created on the cluster.
 func (m *EC2Monitor) GetNewResources(clusterResources map[string]bool) ([]string, error) {
 	uniqueTags, err := GetUniqueTags()
 	if err != nil {
