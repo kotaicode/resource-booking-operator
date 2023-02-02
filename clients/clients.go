@@ -38,7 +38,7 @@ type CloudResource interface {
 }
 
 type ResourceMonitor interface {
-	GetNewResources(clusterResources []string) ([]string, error)
+	GetNewResources(clusterResources map[string]bool) ([]string, error)
 }
 
 var kubeconfig string
@@ -72,9 +72,8 @@ func ResourceFactory(resType, tag string) (CloudResource, error) {
 	return resource, nil
 }
 
-// TODO
-// ResourceFactory generates structs that abide by the CloudResource interface.
-// The returned struct can start, stop, and list instances. Each new integration needso to be added to this factory function.
+// MonitorFactory generates structs that abide by the ResourceMonitor interface.
+// The returned struct can get new resources of the specified type. Each new integration needso to be added to this factory function.
 func MonitorFactory(monitorType string) (ResourceMonitor, error) {
 	var resourceMonitor ResourceMonitor
 
