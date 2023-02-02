@@ -21,6 +21,10 @@ const (
 	resourceMonitorTagKey string = "resource-booking/managed"
 )
 
+type EC2Monitor struct {
+	Type string
+}
+
 // Resource represents a collection of EC2 instances grouped by a common "resource-booking/application" tag.
 type EC2Resource struct {
 	NameTag string
@@ -124,6 +128,26 @@ func (r *EC2Resource) getInstanceIds(nameTag string) ([]*string, error) {
 	return instanceIds, nil
 }
 
+// sliceToMap returns map, used to convert slice to map
+func sliceToMap(slice []string) map[string]bool { //TODO: give a better name
+	m := make(map[string]bool)
+	for _, s := range slice {
+		m[s] = true
+	}
+	return m
+}
+
+// diff returns a slice of strings, used to compare two maps.
+func diff(m1, m2 map[string]bool) []string { //TODO: give a better name
+	slice := make([]string, 0, len(m1))
+	for k := range m1 {
+		if _, ok := m2[k]; !ok {
+			slice = append(slice, k)
+		}
+	}
+	return slice
+}
+
 // GetUniqueTags returns a slice of unique tags.
 // It makes a call through the EC2 client to get all the unique tags in the cluster.
 func GetUniqueTags() ([]string, error) {
@@ -161,4 +185,20 @@ func GetUniqueTags() ([]string, error) {
 	}
 	return uniqueTags, nil
 
+}
+
+func (m *EC2Monitor) GetNewResources(clusterResources []string) ([]string, error) {
+	uniqueTags, err := GetUniqueTags()
+	if err != nil {
+		return nil, err
+	}
+
+	uniqueTagsMap := sliceToMap(uniqueTags)
+	clusterResourcesMap := sliceToMap(clusterResources)
+
+	slice1 := diff(uniqueTagsMap, clusterResourcesMap) //TODO: give a better name
+	slice2 := diff(clusterResourcesMap, uniqueTagsMap) //TODO: give a better name
+	nonMatchingTags := append(slice1, slice2...)
+
+	return nonMatchingTags, nil
 }

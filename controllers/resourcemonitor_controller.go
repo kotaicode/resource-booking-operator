@@ -35,31 +35,6 @@ type ResourceMonitorReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-const (
-	ResourceType      = "ec2"
-	ResourceNamespace = "default"
-)
-
-// sliceToMap returns map, used to convert slice to map
-func sliceToMap(slice []string) map[string]bool { //TODO: give a better name
-	m := make(map[string]bool)
-	for _, s := range slice {
-		m[s] = true
-	}
-	return m
-}
-
-// diff returns a slice of strings, used to compare two maps.
-func diff(m1, m2 map[string]bool) []string { //TODO: give a better name
-	slice := make([]string, 0, len(m1))
-	for k := range m1 {
-		if _, ok := m2[k]; !ok {
-			slice = append(slice, k)
-		}
-	}
-	return slice
-}
-
 //+kubebuilder:rbac:groups=manager.kotaico.de,resources=resourcemonitors,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=manager.kotaico.de,resources=resourcemonitors/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=manager.kotaico.de,resources=resourcemonitors/finalizers,verbs=update
@@ -91,31 +66,28 @@ func (r *ResourceMonitorReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		clusterResources = append(clusterResources, rs.Spec.Tag)
 	}
 
-	uniqueTags, err := clients.GetUniqueTags()
+	monitor, err := clients.MonitorFactory(resourceMonitor.Spec.Type)
 	if err != nil {
-		log.Error(err, "Error getting unique tags")
+		log.Error(err, "Error listing resource monitor")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	uniqueTagsMap := sliceToMap(uniqueTags)
-	clusterResourcesMap := sliceToMap(clusterResources)
 
-	slice1 := diff(uniqueTagsMap, clusterResourcesMap) //TODO: give a better name
-	slice2 := diff(clusterResourcesMap, uniqueTagsMap) //TODO: give a better name
-	nonMatchingTags := append(slice1, slice2...)
+	nonMatchingTags, err := monitor.GetNewResources(clusterResources)
+	if err != nil {
+		log.Error(err, "Error listing resource monitor")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
 
 	for _, tag := range nonMatchingTags {
 		resource := &managerv1.Resource{
-			TypeMeta: metav1.TypeMeta{
-				APIVersion: "manager.kotaico.de/v1",
-				Kind:       "Resource",
-			},
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      tag,
-				Namespace: ResourceNamespace,
+				Namespace: resourceMonitor.Namespace,
 			},
 			Spec: managerv1.ResourceSpec{
 				Booked: false,
 				Tag:    tag,
-				Type:   ResourceType,
+				Type:   resourceMonitor.Spec.Type,
 			},
 		}
 		log.Info("creating resources")
@@ -125,7 +97,7 @@ func (r *ResourceMonitorReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		}
 	}
 
-	return ctrl.Result{RequeueAfter: time.Duration(time.Second * 15)}, nil
+	return ctrl.Result{RequeueAfter: time.Duration(time.Minute * 2)}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
