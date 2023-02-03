@@ -124,16 +124,22 @@
         }
 
         .video-wrapper {
-            padding: 0 1%;
-            border-radius: 10px;
             text-align: center;
+            border-radius: 10px;
             background: #282C36;
         }
 
         .video {
-            width: 98%;
-            margin: 20px auto;
+            width: 99%;
+            padding: 0.5%;
+            border-radius: 10px;
             border: solid 1px #203148;
+        }
+
+        .video::cue {
+          font-size: 0.55em;
+          font-weight: 300;
+          font-family: 'Lato', sans-serif;
         }
 
         .features-wrapper {
@@ -306,7 +312,7 @@
 
         <section class="video-wrapper">
             <video class="video" autoplay muted loop>
-                <source src="assets/vid/screenshare.mov" type="video/mp4">
+                <source src="assets/vid/screenshare.mp4" type="video/mp4">
                 Your browser does not support video tag
 
                 <track
