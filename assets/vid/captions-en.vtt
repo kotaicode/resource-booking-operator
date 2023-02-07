@@ -1,11 +1,28 @@
 WEBVTT
 
-00:00:00.000 --> 00:00:01.000
-Are you tired of managing your Kubernetes infrastructure manually?
+00:00:00.000 --> 00:00:04.000
+With the resource booking operator we can manage cloud resources using Kubernetes custom operator.
 
-00:00:02.000 --> 00:00:04.000
- Introducing Kubernetes Custom Operators. 
+00:00:06.000 --> 00:00:08.000
+First, we apply our monitor resource.
 
-00:00:06.000 --> 00:00:10.000
-With Custom Operators, you can automate the management of your applications and services on Kubernetes. This means you can spend less time on manual tasks and more time on building and scaling your business. Upgrade your infrastructure today with Kubernetes Custom Operators.
+00:00:09.000 --> 00:00:13.000
+This custom resource scans for instances of the given type and adds them to the cluster, grouped by their resource name.
 
+00:00:14.000 --> 00:00:20.000
+Once we have our resources represented on the cluster, we can manage their state with bookings.
+
+00:00:22.000 --> 00:00:30.000
+We apply a booking resource to the cluster, which runs the analytics resource.
+
+00:00:32.000 --> 00:00:39.000
+On the bottom left we see a table of EC2 instances, their status, and their assigned resource names.
+
+00:00:40.000 --> 00:00:49.000
+We can see the analytics instances waking up both in the table from the aws cli, and also from our list of resources available in the cluster.
+
+00:00:49.000 --> 00:00:54.000
+Triggered by the booking we just added to the cluster, which will keep the instances running until it expires.
+
+00:00:55.000 --> 00:01:00.000
+This can also be expanded to other types of cloud resources.

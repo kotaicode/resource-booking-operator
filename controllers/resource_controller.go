@@ -106,7 +106,7 @@ func (r *ResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	log.Info("reconciled resource")
-	return ctrl.Result{RequeueAfter: time.Duration(time.Second * 30)}, nil
+	return ctrl.Result{RequeueAfter: time.Duration(time.Second * 15)}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
