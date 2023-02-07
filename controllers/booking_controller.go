@@ -64,7 +64,7 @@ func (r *BookingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	var resources managerv1.ResourceList
-	if err := r.List(context.Background(), &resources); err != nil {
+	if err := r.List(context.Background(), &resources, client.MatchingFields{"spec.tag": booking.Spec.ResourceName}); err != nil {
 		log.Error(err, "Error listing bookings")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}

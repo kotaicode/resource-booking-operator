@@ -16,14 +16,10 @@ import (
 
 var _ = Describe("Booking controller", func() {
 
-	// Define utility constants for object names and testing timeouts/durations and intervals.
 	const (
 		BookingName         = "test-booking"
 		BookingNamespace    = "default"
 		BookingResourceName = "analytics"
-		timeout             = time.Second * 50
-		duration            = time.Second * 5
-		interval            = time.Millisecond * 250
 	)
 
 	// Keep the format visible for easier debugging and just increment with an year
@@ -43,7 +39,7 @@ var _ = Describe("Booking controller", func() {
 	var bookingSpec managerv1.BookingSpec
 	var booking *managerv1.Booking
 
-	Context("TODO", func() {
+	Context("Booking changes", func() {
 		BeforeEach(func() {
 			bookingSpec = managerv1.BookingSpec{
 				StartAt:      ScheduledBookingStart,
@@ -52,10 +48,6 @@ var _ = Describe("Booking controller", func() {
 			}
 
 			booking = &managerv1.Booking{
-				TypeMeta: metav1.TypeMeta{
-					APIVersion: "manager.kotaico.de/v1",
-					Kind:       "Booking",
-				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      BookingName,
 					Namespace: BookingNamespace,

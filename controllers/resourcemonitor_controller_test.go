@@ -12,46 +12,40 @@ import (
 	//+kubebuilder:scaffold:imports
 )
 
-var _ = Describe("Resource controller", func() {
+var _ = Describe("Resource Monitor controller", func() {
 
-	// Define utility constants for object names and testing timeouts/durations and intervals.
 	const (
 		ResourceName      = "test-resource-monitor"
-		ResourceTag       = "analytics"
 		ResourceType      = "ec2"
 		ResourceNamespace = "default"
 
-		timeout  = time.Second * 12
-		duration = time.Second * 10
+		timeout  = time.Second * 3
 		interval = time.Millisecond * 250
 	)
 
 	ctx := context.Background()
 
-	Context("TODO", func() {
+	Context("Resource monitor management", func() {
 		BeforeEach(func() {
-			resourceMonitor := &managerv1.ResourceMonitor{
-				TypeMeta: metav1.TypeMeta{
-					APIVersion: "manager.kotaico.de/v1",
-					Kind:       "ResourceMonitor",
-				},
+			resourceMonitor := managerv1.ResourceMonitor{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      ResourceName,
 					Namespace: ResourceNamespace,
 				},
+				Spec: managerv1.ResourceMonitorSpec{
+					Type: ResourceType,
+				},
 			}
-			Expect(k8sClient.Create(ctx, resourceMonitor)).Should(Succeed())
+			Expect(k8sClient.Create(ctx, &resourceMonitor)).Should(Succeed())
 		})
 
-		It("TODO", func() {
-			By("By get Resource monitor")
-			resourceList := &managerv1.ResourceList{}
+		It("Asserts that the resource monitor created resources", func() {
+			By("By getting the list of resources")
+			resourceList := managerv1.ResourceList{}
 			Eventually(func() bool {
-				err := k8sClient.List(ctx, resourceList)
-				return err == nil
+				err := k8sClient.List(ctx, &resourceList)
+				return err == nil && len(resourceList.Items) > 1
 			}, timeout, interval).Should(BeTrue())
-
-			Expect(len(resourceList.Items)).Should(BeNumerically(">", 0)) // TODO: fix errors
 		})
 	})
 })
