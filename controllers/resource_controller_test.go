@@ -15,7 +15,6 @@ import (
 
 var _ = Describe("Resource controller", func() {
 
-	// Define utility constants for object names and testing timeouts/durations and intervals.
 	const (
 		ResourceName      = "test-resource"
 		ResourceTag       = "analytics"
@@ -23,19 +22,14 @@ var _ = Describe("Resource controller", func() {
 		ResourceNamespace = "default"
 
 		timeout  = time.Second * 10
-		duration = time.Second * 10
 		interval = time.Millisecond * 250
 	)
 
 	ctx := context.Background()
 
-	Context("TODO", func() {
+	Context("Resource basics", func() {
 		BeforeEach(func() {
 			resource := &managerv1.Resource{
-				TypeMeta: metav1.TypeMeta{
-					APIVersion: "manager.kotaico.de/v1",
-					Kind:       "Resource",
-				},
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      ResourceName,
 					Namespace: ResourceNamespace,
@@ -43,12 +37,13 @@ var _ = Describe("Resource controller", func() {
 				Spec: managerv1.ResourceSpec{
 					Booked: false,
 					Tag:    ResourceTag,
+					Type:   ResourceType,
 				},
 			}
 			Expect(k8sClient.Create(ctx, resource)).Should(Succeed())
 		})
 
-		It("TODO", func() {
+		It("Asserts resource creation", func() {
 			By("By creating a new Resource")
 			// Check that the spec we passed is matching
 			resourceLookupKey := types.NamespacedName{Name: ResourceName, Namespace: ResourceNamespace}
@@ -67,6 +62,6 @@ var _ = Describe("Resource controller", func() {
 				Status:    "",
 			}))
 		})
-		// TODO: THe case where booked is true
+		// TODO: The case where booked is true
 	})
 })
