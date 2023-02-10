@@ -37,6 +37,10 @@ type CloudResource interface {
 	Status() (ResourceStatus, error)
 }
 
+type ResourceMonitor interface {
+	GetNewResources(clusterResources map[string]bool) ([]string, error)
+}
+
 var kubeconfig string
 
 func init() {
@@ -66,6 +70,21 @@ func ResourceFactory(resType, tag string) (CloudResource, error) {
 	}
 
 	return resource, nil
+}
+
+// MonitorFactory generates structs that abide by the ResourceMonitor interface.
+// The returned struct can get new resources of the specified type. Each new integration needso to be added to this factory function.
+func MonitorFactory(monitorType string) (ResourceMonitor, error) {
+	var resourceMonitor ResourceMonitor
+
+	switch monitorType {
+	case TypeEC2:
+		resourceMonitor = &EC2Monitor{Type: monitorType}
+	default:
+		return nil, errors.New("Monitor type not found")
+	}
+
+	return resourceMonitor, nil
 }
 
 // GetClient returns a ready to use kubernetes client.

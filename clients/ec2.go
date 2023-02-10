@@ -21,6 +21,10 @@ const (
 	resourceMonitorTagKey string = "resource-booking/managed"
 )
 
+type EC2Monitor struct {
+	Type string
+}
+
 // Resource represents a collection of EC2 instances grouped by a common "resource-booking/application" tag.
 type EC2Resource struct {
 	NameTag string
@@ -124,11 +128,22 @@ func (r *EC2Resource) getInstanceIds(nameTag string) ([]*string, error) {
 	return instanceIds, nil
 }
 
-// GetUniqueTags returns a slice of unique tags.
-// It makes a call through the EC2 client to get all the unique tags in the cluster.
-func GetUniqueTags() ([]string, error) {
-	var uniqueTags []string
+// GetNewResources compares the local cluster resources with the ones returned from EC2
+// and gives back a list of resources that need to be created on the cluster.
+func (m *EC2Monitor) GetNewResources(clusterResources map[string]bool) ([]string, error) {
+	uniqueTags, err := GetUniqueTags()
+	if err != nil {
+		return nil, err
+	}
 
+	slice1, slice2 := setDiff(uniqueTags, clusterResources), setDiff(clusterResources, uniqueTags)
+	nonMatchingTags := append(slice1, slice2...)
+
+	return nonMatchingTags, nil
+}
+
+// GetUniqueTags makes a call through the EC2 client to collect all instance tags and returns a set of them
+func GetUniqueTags() (map[string]bool, error) {
 	// Prepare filters
 	tagKey := "tag:" + resourceMonitorTagKey
 	tagValue := "true"
@@ -156,9 +171,16 @@ func GetUniqueTags() ([]string, error) {
 		}
 	}
 
-	for tag := range tagMap {
-		uniqueTags = append(uniqueTags, tag)
-	}
-	return uniqueTags, nil
+	return tagMap, nil
+}
 
+// setDiff returns the difference between two sets
+func setDiff(m1, m2 map[string]bool) []string {
+	slice := make([]string, 0, len(m1))
+	for k := range m1 {
+		if _, ok := m2[k]; !ok {
+			slice = append(slice, k)
+		}
+	}
+	return slice
 }
