@@ -3,13 +3,13 @@ kind: Booking
 metadata:
   labels:
     app.kubernetes.io/name: booking
-    app.kubernetes.io/instance: booking-sample
+    app.kubernetes.io/instance: backup-jan10
     app.kubernetes.io/part-of: resource-booking-operator
     app.kuberentes.io/managed-by: kustomize
     app.kubernetes.io/created-by: resource-booking-operator
-  name: booking-sample
+  name: backup-jan10
 spec:
   resource_name: analytics
-  start_at: 2023-01-11T17:35:05Z
-  end_at: 2023-02-01T07:40:05Z
-  user_id: sample_user
+  start_at: 2023-01-10T22:35:00Z
+  end_at: 2023-01-10T22:45:00Z
+  user_id: cd39ad8bc3
