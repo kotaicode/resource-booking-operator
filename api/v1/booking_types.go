@@ -31,6 +31,7 @@ type BookingSpec struct {
 	EndAt        string `json:"end_at"`
 	StartAt      string `json:"start_at"`
 	ResourceName string `json:"resource_name"`
+	UserID       string `json:"user_id"`
 }
 
 // BookingStatus defines the observed state of Booking

@@ -35,9 +35,9 @@ var _ = Describe("Resource controller", func() {
 					Namespace: ResourceNamespace,
 				},
 				Spec: managerv1.ResourceSpec{
-					Booked: false,
-					Tag:    ResourceTag,
-					Type:   ResourceType,
+					BookedBy: "test",
+					Tag:      ResourceTag,
+					Type:     ResourceType,
 				},
 			}
 			Expect(k8sClient.Create(ctx, resource)).Should(Succeed())

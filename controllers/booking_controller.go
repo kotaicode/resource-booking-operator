@@ -70,14 +70,14 @@ func (r *BookingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	if bookStart.Before(time.Now()) && time.Now().Before(bookEnd) {
-		updateResource(r, ctx, &resources, true)
 		booking.Status.Status = managerv1.BookingInProgress
+		updateResource(r, ctx, &resources, &booking)
 	} else if bookEnd.Before(time.Now()) {
-		updateResource(r, ctx, &resources, false)
 		booking.Status.Status = managerv1.BookingFinished
+		updateResource(r, ctx, &resources, &booking)
 	} else {
-		updateResource(r, ctx, &resources, false)
 		booking.Status.Status = managerv1.BookingScheduled
+		updateResource(r, ctx, &resources, &booking)
 	}
 
 	log.Info("Updating booking status", "status", booking.Status.Status)
@@ -95,11 +95,16 @@ func (r *BookingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	return ctrl.Result{RequeueAfter: time.Duration(time.Minute * 1)}, nil
 }
 
-func updateResource(r *BookingReconciler, ctx context.Context, resources *managerv1.ResourceList, booked bool) {
+func updateResource(r *BookingReconciler, ctx context.Context, resources *managerv1.ResourceList, booking *managerv1.Booking) {
 	log := log.FromContext(ctx)
 
 	for _, rs := range resources.Items {
-		rs.Spec.Booked = booked
+		switch booking.Status.Status {
+		case managerv1.BookingFinished:
+			rs.Spec.BookedBy = ""
+		default:
+			rs.Spec.BookedBy = booking.Spec.UserID
+		}
 
 		err := r.Update(ctx, &rs)
 		if err != nil {

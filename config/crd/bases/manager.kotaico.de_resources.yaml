@@ -16,9 +16,9 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .spec.booked
-      name: BOOKED
-      type: boolean
+    - jsonPath: .status.locked_by
+      name: LOCKED BY
+      type: string
     - jsonPath: .status.instances
       name: INSTANCES
       type: integer
@@ -48,14 +48,17 @@ spec:
           spec:
             description: ResourceSpec defines the desired state of Resource
             properties:
-              booked:
-                type: boolean
+              booked_by:
+                type: string
+              booked_until:
+                type: string
               tag:
                 type: string
               type:
                 type: string
             required:
-            - booked
+            - booked_by
+            - booked_until
             - tag
             - type
             type: object
@@ -64,12 +67,18 @@ spec:
             properties:
               instances:
                 type: integer
+              locked_by:
+                type: string
+              locked_until:
+                type: string
               running:
                 type: integer
               status:
                 type: string
             required:
             - instances
+            - locked_by
+            - locked_until
             - running
             - status
             type: object

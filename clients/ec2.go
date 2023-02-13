@@ -4,6 +4,7 @@ package clients
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
@@ -21,6 +22,11 @@ const (
 	resourceMonitorTagKey string = "resource-booking/managed"
 )
 
+var (
+	lockedByTag    string = "resource-booking/locked-by"
+	lockedUntilTag string = "resource-booking/locked-until"
+)
+
 type EC2Monitor struct {
 	Type string
 }
@@ -30,21 +36,35 @@ type EC2Resource struct {
 	NameTag string
 }
 
+type instanceDetails struct {
+	IDs  []*string
+	Tags map[string]string
+}
+
 var mySession *session.Session = session.Must(session.NewSessionWithOptions(session.Options{
 	SharedConfigState: session.SharedConfigEnable,
 }))
 var ec2Client *ec2.EC2 = ec2.New(mySession)
 
 // Start makes a call through the EC2 client to start resource instances by their IDs.
-func (r *EC2Resource) Start() error {
-	instanceIds, err := r.getInstanceIds(r.NameTag)
+func (r *EC2Resource) Start(startInput ResourceStartInput) error {
+	instances, err := r.getInstanceDetails(r.NameTag)
 	if err != nil {
 		return err
 	}
 
+	if _, err = r.canManage(startInput.UID, instances.Tags); err != nil {
+		return err
+	}
+
 	_, err = ec2Client.StartInstances(&ec2.StartInstancesInput{
-		InstanceIds: instanceIds,
+		InstanceIds: instances.IDs,
 	})
+	if err != nil {
+		return err
+	}
+
+	err = r.lock(startInput.UID, startInput.EndAt, instances.IDs)
 	if err != nil {
 		return err
 	}
@@ -53,15 +73,24 @@ func (r *EC2Resource) Start() error {
 }
 
 // Stop makes a call through the EC2 client to stop the instances that belong to the resource.
-func (r *EC2Resource) Stop() error {
-	instanceIds, err := r.getInstanceIds(r.NameTag)
+func (r *EC2Resource) Stop(stopInput ResourceStopInput) error {
+	instances, err := r.getInstanceDetails(r.NameTag)
 	if err != nil {
 		return err
 	}
 
+	if _, err = r.canManage(stopInput.UID, instances.Tags); err != nil {
+		return err
+	}
+
 	_, err = ec2Client.StopInstances(&ec2.StopInstancesInput{
-		InstanceIds: instanceIds,
+		InstanceIds: instances.IDs,
 	})
+	if err != nil {
+		return err
+	}
+
+	err = r.unlock(instances.IDs)
 	if err != nil {
 		return err
 	}
@@ -71,25 +100,25 @@ func (r *EC2Resource) Stop() error {
 
 // Status returns the current summary of a given resource instance statuses.
 // It makes a call through the EC2 client with a given set of instance IDs and summarises their status (active vs running).
-func (r *EC2Resource) Status() (ResourceStatus, error) {
+func (r *EC2Resource) Status() (ResourceStatusOutput, error) {
 	includeAll := true
-	var rst ResourceStatus
+	var rst ResourceStatusOutput
 
-	instanceIds, err := r.getInstanceIds(r.NameTag)
+	instances, err := r.getInstanceDetails(r.NameTag)
 	if err != nil {
 		return rst, err
 	}
 
 	resp, err := ec2Client.DescribeInstanceStatus(&ec2.DescribeInstanceStatusInput{
 		IncludeAllInstances: &includeAll,
-		InstanceIds:         instanceIds,
+		InstanceIds:         instances.IDs,
 	})
 	if err != nil {
 		return rst, err
 	}
 
 	// EC2 API will return all instances if we send an empty instance IDs list. Handle that.
-	if len(instanceIds) > 0 {
+	if len(instances.IDs) > 0 {
 		for _, inst := range resp.InstanceStatuses {
 			rst.Available++
 			if *inst.InstanceState.Code == statusRunning {
@@ -98,12 +127,69 @@ func (r *EC2Resource) Status() (ResourceStatus, error) {
 		}
 	}
 
+	rst.LockedBy, rst.LockedUntil = instances.Tags[lockedByTag], instances.Tags[lockedUntilTag]
+
 	return rst, nil
 }
 
-// getInstanceIds returns instance IDs from a given name tag. Basically wrap the EC2 call with a filter of our default tag identificator.
-func (r *EC2Resource) getInstanceIds(nameTag string) ([]*string, error) {
-	var instanceIds []*string
+func (r *EC2Resource) canManage(uid string, instanceTags map[string]string) (bool, error) {
+	if _, ok := instanceTags[lockedByTag]; ok && instanceTags[lockedUntilTag] != "" {
+		d, err := time.Parse(time.RFC3339, instanceTags[lockedUntilTag])
+		if err != nil {
+			return false, err
+		}
+
+		if instanceTags[lockedByTag] != uid && time.Now().Before(d) {
+			m := "Resource is locked by %s. The lock expires at %s."
+			err = fmt.Errorf(m, instanceTags[lockedByTag], instanceTags[lockedUntilTag])
+			return false, err
+		}
+	}
+
+	return true, nil
+}
+
+// lock sets locking tags to the resource instances. Tags are:
+// resource-booking/locked-by    - The identifier of the booking that owns the instance at this moment
+// resource-booking/locked-until - Date time until the instance is available again. The endAt of the booking.
+func (r *EC2Resource) lock(uid string, endAt string, instanceIDs []*string) error {
+	_, err := ec2Client.CreateTags(&ec2.CreateTagsInput{
+		Resources: instanceIDs,
+		Tags: []*ec2.Tag{
+			{Key: &lockedByTag, Value: &uid},
+			{Key: &lockedUntilTag, Value: &endAt},
+		},
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// unlock removes the locking tags, freeing the resource to other users.
+func (r *EC2Resource) unlock(instanceIDs []*string) error {
+	_, err := ec2Client.DeleteTags(&ec2.DeleteTagsInput{
+		Resources: instanceIDs,
+		Tags: []*ec2.Tag{
+			{Key: &lockedByTag},
+			{Key: &lockedUntilTag},
+		},
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// getInstanceDetails returns instance IDs from a given name tag. Basically wrap the EC2 call with a filter of our default tag identificator.
+func (r *EC2Resource) getInstanceDetails(nameTag string) (instanceDetails, error) {
+	details := instanceDetails{Tags: make(map[string]string)}
+
+	var instanceTagList []*ec2.Tag
 
 	// Prepare filters
 	tagKey := fmt.Sprintf("tag:%s", defaultTagKey)
@@ -116,16 +202,28 @@ func (r *EC2Resource) getInstanceIds(nameTag string) ([]*string, error) {
 		Filters: []*ec2.Filter{nameFilter},
 	})
 	if err != nil {
-		return nil, err
+		return details, err
 	}
 
 	for _, reserv := range resp.Reservations {
 		for _, inst := range reserv.Instances {
-			instanceIds = append(instanceIds, inst.InstanceId)
+			details.IDs = append(details.IDs, inst.InstanceId)
+			instanceTagList = append(instanceTagList, inst.Tags...)
 		}
 	}
 
-	return instanceIds, nil
+	// For now Don't care about the edge case where two instances might theoretically have different lock tags
+	for _, v := range instanceTagList {
+		if *v.Key == lockedByTag || *v.Key == lockedUntilTag {
+			details.Tags[*v.Key] = *v.Value
+		}
+
+		if len(details.Tags) == 2 {
+			break
+		}
+	}
+
+	return details, nil
 }
 
 // GetNewResources compares the local cluster resources with the ones returned from EC2

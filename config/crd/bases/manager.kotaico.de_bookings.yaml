@@ -51,10 +51,13 @@ spec:
                 type: string
               start_at:
                 type: string
+              user_id:
+                type: string
             required:
             - end_at
             - resource_name
             - start_at
+            - user_id
             type: object
           status:
             description: BookingStatus defines the observed state of Booking
