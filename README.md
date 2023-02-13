@@ -24,9 +24,24 @@ make run
 ```
 ## The details
 
-📘 For more details on how to use the operator, we highly recommend [checking out the documentation](https://github.com/kotaicode/resource-booking-operator/edit/readme-to-docs/TODO.md).
+📘 For more details on how to use the operator, we highly recommend [checking out the documentation](https://kotaico.de/resource-booking-operator/).
+
+## Tests
+Tests are still in progress and work only in an environment with configured AWS credentials.  
+
+First, make sure to install `envtest` with:
+```
+make envtest
+```
+
+Then running the tests is as simple as:
+```
+make test
+```
 
 ## Development
 Kubebuilder is a hard development dependency of the project, so one of the best guides to extending and playing with this codebase is the [Kubebuilder book](https://book.kubebuilder.io/).
 
 ## Roadmap
+- Recurring bookings
+- Support AWS RDS
