@@ -57,7 +57,7 @@ func (r *ResourceMonitorReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 
 	var resources managerv1.ResourceList
-	if err := r.List(context.Background(), &resources); err != nil {
+	if err := r.List(context.Background(), &resources, client.MatchingFields{"spec.type": resourceMonitor.Spec.Type}); err != nil {
 		log.Error(err, "Error listing resource monitor")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
@@ -81,7 +81,7 @@ func (r *ResourceMonitorReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	for _, tag := range nonMatchingTags {
 		resource := &managerv1.Resource{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      tag,
+				Name:      resourceMonitor.Spec.Type + "." + tag,
 				Namespace: resourceMonitor.Namespace,
 			},
 			Spec: managerv1.ResourceSpec{
@@ -101,6 +101,16 @@ func (r *ResourceMonitorReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *ResourceMonitorReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	ctx := context.TODO()
+	log := log.FromContext(ctx)
+
+	err := mgr.GetFieldIndexer().IndexField(ctx, &managerv1.Resource{}, "spec.type", func(o client.Object) []string {
+		return []string{o.(*managerv1.Resource).Spec.Type}
+	})
+	if err != nil {
+		log.Error(err, "Error indexing resource type field")
+	}
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&managerv1.ResourceMonitor{}).
 		Complete(r)
