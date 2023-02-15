@@ -105,6 +105,8 @@ func MonitorFactory(monitorType string) (ResourceMonitor, error) {
 	switch monitorType {
 	case TypeEC2:
 		resourceMonitor = &EC2Monitor{Type: monitorType}
+	case TypeRDS:
+		resourceMonitor = &RDSMonitor{Type: monitorType}
 	default:
 		return nil, errors.New("Monitor type not found")
 	}

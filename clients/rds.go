@@ -9,6 +9,10 @@ type RDSResource struct {
 	NameTag string
 }
 
+type RDSMonitor struct {
+	Type string
+}
+
 var rdsSession *session.Session = session.Must(session.NewSessionWithOptions(session.Options{
 	SharedConfigState: session.SharedConfigEnable,
 }))
@@ -99,28 +103,6 @@ func (r *RDSResource) getRDSInstancesByTag(nameTag string) ([]*rds.DBInstance, e
 	return filteredInstances, nil
 }
 
-// func (r *RDSResource) getRDSInstanceIds(nameTag string) ([]*string, error) {
-// 	var DBInstanceIds []*string
-// 	// tagKey := fmt.Sprintf("tag:%s", defaultTagKey)
-// 	// nameFilter := &rds.Filter{
-// 	// 	Name:   &tagKey,
-// 	// 	Values: []*string{&nameTag},
-// 	// }
-
-// 	resp, err := rdsClient.DescribeDBInstances(&rds.DescribeDBInstancesInput{
-// 		Filters: []*rds.Filter{},
-// 	})
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	for _, DBInstance := range resp.DBInstances {
-// 		DBInstanceIds = append(DBInstanceIds, DBInstance.DBInstanceIdentifier)
-// 	}
-
-// 	return DBInstanceIds, nil
-// }
-
 func (r *RDSResource) getRDSInstanceIdsByTag(nameTag string) ([]*string, error) {
 	var DBInstanceIds []*string
 	filteredInstances, err := r.getRDSInstancesByTag(nameTag)
@@ -134,4 +116,57 @@ func (r *RDSResource) getRDSInstanceIdsByTag(nameTag string) ([]*string, error) 
 	}
 
 	return DBInstanceIds, nil
+}
+
+func (m *RDSMonitor) GetNewResources(clusterResources map[string]bool) ([]string, error) {
+	uniqueTags, err := GetUniqueRDSTags()
+	if err != nil {
+		return nil, err
+	}
+
+	slice1, slice2 := setDiff(uniqueTags, clusterResources), setDiff(clusterResources, uniqueTags)
+	nonMatchingTags := append(slice1, slice2...)
+
+	return nonMatchingTags, nil
+}
+
+func GetUniqueRDSTags() (map[string]bool, error) {
+	tagMap := make(map[string]bool)
+
+	instances, err := rdsClient.DescribeDBInstances(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var filteredInstances []*rds.DBInstance
+	for _, instance := range instances.DBInstances {
+		input := &rds.ListTagsForResourceInput{
+			ResourceName: instance.DBInstanceArn,
+		}
+		result, err := rdsClient.ListTagsForResource(input)
+		if err != nil {
+			return nil, err
+		}
+		for _, tag := range result.TagList {
+			if *tag.Key == resourceMonitorTagKey && *tag.Value == "true" {
+				filteredInstances = append(filteredInstances, instance)
+				break
+			}
+		}
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, instance := range filteredInstances {
+		resourceBookingTags := instance.TagList
+		for _, v := range resourceBookingTags {
+			if *v.Key == defaultTagKey {
+				tagMap[*v.Value] = true
+			}
+		}
+
+	}
+	return tagMap, nil
 }
