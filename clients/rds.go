@@ -14,7 +14,7 @@ var rdsSession *session.Session = session.Must(session.NewSessionWithOptions(ses
 }))
 var rdsClient = rds.New(rdsSession)
 
-func (r *RDSResource) Start() error {
+func (r *RDSResource) Start(startInput ResourceStartInput) error {
 	DBInstanceIds, err := r.getRDSInstanceIdsByTag(r.NameTag)
 	if err != nil {
 		return err
@@ -32,7 +32,7 @@ func (r *RDSResource) Start() error {
 	return nil
 }
 
-func (r *RDSResource) Stop() error {
+func (r *RDSResource) Stop(stopInput ResourceStopInput) error {
 	DBInstanceIds, err := r.getRDSInstanceIdsByTag(r.NameTag)
 	if err != nil {
 		return err

@@ -17,6 +17,7 @@ import (
 
 const (
 	TypeEC2 string = "ec2"
+	TypeRDS string = "rds"
 )
 
 const (
@@ -87,6 +88,8 @@ func ResourceFactory(resType, tag string) (CloudResource, error) {
 	switch resType {
 	case TypeEC2:
 		resource = &EC2Resource{NameTag: tag}
+	case TypeRDS:
+		resource = &RDSResource{NameTag: tag}
 	default:
 		return nil, errors.New("Resource type not found")
 	}
