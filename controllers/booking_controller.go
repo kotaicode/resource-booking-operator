@@ -102,8 +102,10 @@ func updateResource(r *BookingReconciler, ctx context.Context, resources *manage
 		switch booking.Status.Status {
 		case managerv1.BookingFinished:
 			rs.Spec.BookedBy = ""
+			rs.Spec.BookedUntil = ""
 		default:
 			rs.Spec.BookedBy = booking.Spec.UserID
+			rs.Spec.BookedUntil = booking.Spec.EndAt
 		}
 
 		err := r.Update(ctx, &rs)

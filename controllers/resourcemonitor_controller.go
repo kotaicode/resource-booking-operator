@@ -85,8 +85,8 @@ func (r *ResourceMonitorReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 				Namespace: resourceMonitor.Namespace,
 			},
 			Spec: managerv1.ResourceSpec{
-				Tag:    tag,
-				Type:   resourceMonitor.Spec.Type,
+				Tag:  tag,
+				Type: resourceMonitor.Spec.Type,
 			},
 		}
 		log.Info("creating resources")

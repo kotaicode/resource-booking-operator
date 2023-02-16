@@ -41,6 +41,7 @@ type ResourceStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 //+kubebuilder:printcolumn:JSONPath=".status.locked_by",name="LOCKED BY",type="string"
+//+kubebuilder:printcolumn:JSONPath=".status.locked_until",name="LOCKED UNTIL",type="string"
 //+kubebuilder:printcolumn:JSONPath=".status.instances",name="INSTANCES",type="integer"
 //+kubebuilder:printcolumn:JSONPath=".status.running",name="RUNNING",type="integer"
 //+kubebuilder:printcolumn:JSONPath=".status.status",name="STATUS",type="string"
