@@ -11,6 +11,7 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -40,6 +41,12 @@ type ResourceStopInput struct {
 	UID string
 }
 
+// ClientCache holds the client and cache objects.
+type ClientCache struct {
+	Client client.Client
+	Cache  cache.Cache
+}
+
 // CloudResource provides generic Resource interface. A Resource is a group of instances which
 // can be started or stopped. The interface also requires a method to list their statuses.
 type CloudResource interface {
@@ -59,7 +66,11 @@ func init() {
 	// 1. --kubeconfig flag.
 	// 2. KUBECONFIG env variable
 	// 3. Default = /.kube/config
-	kubeconfig = flag.Lookup("kubeconfig").Value.String()
+	kubeflag := flag.Lookup("kubeconfig")
+	if kubeflag != nil {
+		kubeconfig = flag.Lookup("kubeconfig").Value.String()
+	}
+
 	if kubeconfig == "" {
 		kubeconfig, _ = os.LookupEnv("KUBECONFIG")
 		if kubeconfig == "" {
@@ -98,8 +109,9 @@ func MonitorFactory(monitorType string) (ResourceMonitor, error) {
 	return resourceMonitor, nil
 }
 
-// GetClient returns a ready to use kubernetes client.
-func GetClient() (client.Client, error) {
+// GetClient returns a ready to use kubernetes client and cache.
+func GetClient() (ClientCache, error) {
+	var clientCache ClientCache
 	var err error
 	var config *rest.Config
 
@@ -115,11 +127,15 @@ func GetClient() (client.Client, error) {
 	utilruntime.Must(managerv1.AddToScheme(scheme))
 	clientOpts := client.Options{Scheme: scheme}
 
-	c, err := client.New(config, clientOpts)
+	clientCache.Client, err = client.New(config, clientOpts)
 	if err != nil {
-		return nil, err
+		return clientCache, err
 	}
 
-	return c, nil
+	clientCache.Cache, err = cache.New(config, cache.Options{Namespace: "default", Scheme: scheme})
+	if err != nil {
+		return clientCache, err
+	}
 
+	return clientCache, nil
 }
