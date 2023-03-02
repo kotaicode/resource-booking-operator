@@ -26,6 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	managerv1 "github.com/kotaicode/resource-booking-operator/api/v1"
+	"github.com/kotaicode/resource-booking-operator/notify"
 )
 
 // BookingReconciler reconciles a Booking object
@@ -44,6 +45,7 @@ type BookingReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
 func (r *BookingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	var err error
 	log := log.FromContext(ctx)
 	log.Info("Reconciling resource")
 
@@ -80,6 +82,24 @@ func (r *BookingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		updateResource(r, ctx, &resources, &booking)
 	}
 
+	if booking.Status.Status == managerv1.BookingInProgress && time.Until(bookEnd) < time.Minute*20 &&
+		!booking.Status.NotificationSent && len(booking.Spec.Notifications) > 0 {
+
+		for _, notification := range booking.Spec.Notifications {
+			n, err := notify.NewNotifier(notification)
+			if err != nil {
+				log.Error(err, "Error sending notification")
+			}
+
+			err = n.Prepare(booking).Send()
+			if err != nil {
+				log.Error(err, "Error sending notification")
+			}
+
+			booking.Status.NotificationSent = err == nil
+		}
+	}
+
 	log.Info("Updating booking status", "status", booking.Status.Status)
 	err = r.Status().Update(ctx, &booking)
 	if err != nil {
@@ -99,13 +119,12 @@ func updateResource(r *BookingReconciler, ctx context.Context, resources *manage
 	log := log.FromContext(ctx)
 
 	for _, rs := range resources.Items {
-		switch booking.Status.Status {
-		case managerv1.BookingFinished:
-			rs.Spec.BookedBy = ""
-			rs.Spec.BookedUntil = ""
-		default:
+
+		if booking.Status.Status == managerv1.BookingInProgress {
 			rs.Spec.BookedBy = booking.Spec.UserID
 			rs.Spec.BookedUntil = booking.Spec.EndAt
+		} else {
+			rs.Spec.BookedUntil = ""
 		}
 
 		err := r.Update(ctx, &rs)

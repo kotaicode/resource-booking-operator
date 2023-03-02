@@ -26,17 +26,24 @@ const (
 	BookingFinished   = "FINISHED"
 )
 
+type Notification struct {
+	Type      string `json:"type"`
+	Recipient string `json:"recipient"`
+}
+
 // BookingSpec defines the desired state of Booking
 type BookingSpec struct {
-	EndAt        string `json:"end_at"`
-	StartAt      string `json:"start_at"`
-	ResourceName string `json:"resource_name"`
-	UserID       string `json:"user_id"`
+	EndAt         string         `json:"end_at"`
+	StartAt       string         `json:"start_at"`
+	ResourceName  string         `json:"resource_name"`
+	UserID        string         `json:"user_id"`
+	Notifications []Notification `json:"notifications,omitempty"`
 }
 
 // BookingStatus defines the observed state of Booking
 type BookingStatus struct {
-	Status string `json:"status,omitempty"`
+	Status           string `json:"status,omitempty"`
+	NotificationSent bool   `json:"notification_sent,omitempty"`
 }
 
 //+kubebuilder:object:root=true

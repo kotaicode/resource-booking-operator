@@ -47,6 +47,18 @@ spec:
             properties:
               end_at:
                 type: string
+              notifications:
+                items:
+                  properties:
+                    recipient:
+                      type: string
+                    type:
+                      type: string
+                  required:
+                  - recipient
+                  - type
+                  type: object
+                type: array
               resource_name:
                 type: string
               start_at:
@@ -62,6 +74,8 @@ spec:
           status:
             description: BookingStatus defines the observed state of Booking
             properties:
+              notification_sent:
+                type: boolean
               status:
                 type: string
             type: object
