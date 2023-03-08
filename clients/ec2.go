@@ -4,10 +4,14 @@ package clients
 
 import (
 	"fmt"
+	"os"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/sts"
 )
 
 const (
@@ -46,8 +50,18 @@ var mySession *session.Session = session.Must(session.NewSessionWithOptions(sess
 }))
 var ec2Client *ec2.EC2 = ec2.New(mySession)
 
+func init() {
+	if os.Getenv("AWS_ROLE_ARN") != "" {
+		err := assumeRole(ec2Client, os.Getenv("AWS_ROLE_ARN"))
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
 // Start makes a call through the EC2 client to start resource instances by their IDs.
 func (r *EC2Resource) Start(startInput ResourceStartInput) error {
+
 	instances, err := r.getInstanceDetails(r.NameTag)
 	if err != nil {
 		return err
@@ -281,4 +295,24 @@ func setDiff(m1, m2 map[string]bool) []string {
 		}
 	}
 	return slice
+}
+
+// assumeRole assumes a role and returns a new EC2 client with the new credentials
+func assumeRole(cli *ec2.EC2, roleArn string) error {
+	stsClient := sts.New(mySession)
+
+	params := &sts.AssumeRoleInput{
+		RoleArn:         aws.String(roleArn),
+		RoleSessionName: aws.String("resource-booking-operator"),
+	}
+
+	resp, err := stsClient.AssumeRole(params)
+	if err != nil {
+		return err
+	}
+
+	creds := resp.Credentials
+	cli.Config.Credentials = credentials.NewStaticCredentials(*creds.AccessKeyId, *creds.SecretAccessKey, *creds.SessionToken)
+
+	return nil
 }
