@@ -3,8 +3,8 @@
 name: Publish
 
 on:
-  push:
-    branches: [ dockerhub-push ]
+  release:
+    types: [published]
 
 jobs:
   publish:
@@ -29,4 +29,7 @@ jobs:
         with:
           platforms: linux/amd64
           push: true
-          tags: kotaicode/resource-booking-operator:latest
+          context: .
+          tags: |
+            kotaicode/resource-booking-operator:${{ github.event.release.tag_name }}
+            kotaicode/resource-booking-operator:latest
