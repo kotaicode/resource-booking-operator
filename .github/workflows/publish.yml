@@ -4,7 +4,7 @@ name: Publish
 
 on:
   push:
-    branches: [ main ]
+    branches: [ dockerhub-push ]
 
 jobs:
   publish:
@@ -18,20 +18,15 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1 # More information on this action can be found below in the 'AWS Credentials' section
+      - name: Docker Login
+        uses: docker/login-action@v2.1.0
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE }}
-          aws-region: eu-central-1
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Build, tag, and push docker image to Amazon ECR
-        env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: resource-booking-operator
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          make docker-build docker-push IMG=$REGISTRY/$REPOSITORY:$IMAGE_TAG
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4.0.0
+        with:
+          platforms: linux/amd64
+          push: true
+          tags: kotaicode/resource-booking-operator:latest
