@@ -85,7 +85,7 @@ func (r *ResourceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		Status:      status,
 	}
 
-	if resource.Spec.BookedBy != "" {
+	if resource.Spec.BookedUntil != "" {
 		if status != clients.StatusRunning {
 			startInput := clients.ResourceStartInput{UID: resource.Spec.BookedBy, EndAt: resource.Spec.BookedUntil}
 			if err := cloudResource.Start(startInput); err != nil {
