@@ -54,7 +54,8 @@ func init() {
 	if os.Getenv("AWS_ROLE_ARN") != "" {
 		err := assumeRole(ec2Client, os.Getenv("AWS_ROLE_ARN"))
 		if err != nil {
-			panic(err)
+			fmt.Println(err.Error())
+			os.Exit(1)
 		}
 	}
 }
