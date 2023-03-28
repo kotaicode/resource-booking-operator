@@ -81,7 +81,7 @@ func (r *ResourceMonitorReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	for _, tag := range nonMatchingTags {
 		resource := &managerv1.Resource{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      tag,
+				Name:      resourceMonitor.Spec.Type + "." + tag,
 				Namespace: resourceMonitor.Namespace,
 			},
 			Spec: managerv1.ResourceSpec{
