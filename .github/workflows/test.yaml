@@ -49,4 +49,4 @@ jobs:
       run: make test
       env:
         AWS_SDK_LOAD_CONFIG: true
-        AWS_REGION: eu-central-1
+        AWS_DEFAULT_REGION: eu-central-1
