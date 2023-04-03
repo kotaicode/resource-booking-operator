@@ -57,7 +57,7 @@ func (r *ResourceMonitorReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	}
 
 	var resources managerv1.ResourceList
-	if err := r.List(context.Background(), &resources); err != nil {
+	if err := r.List(context.Background(), &resources, client.MatchingFields{"spec.tag": resourceMonitor.Spec.Type}); err != nil {
 		log.Error(err, "Error listing resource monitor")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
