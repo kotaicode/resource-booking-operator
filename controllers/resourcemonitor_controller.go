@@ -101,6 +101,16 @@ func (r *ResourceMonitorReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *ResourceMonitorReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	ctx := context.TODO()
+	log := log.FromContext(ctx)
+
+	err := mgr.GetFieldIndexer().IndexField(ctx, &managerv1.Resource{}, "spec.type", func(o client.Object) []string {
+		return []string{o.(*managerv1.Resource).Spec.Type}
+	})
+	if err != nil {
+		log.Error(err, "Error indexing resource type field")
+	}
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&managerv1.ResourceMonitor{}).
 		Complete(r)
