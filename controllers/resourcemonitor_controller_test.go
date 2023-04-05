@@ -13,17 +13,20 @@ import (
 )
 
 var _ = Describe("Resource Monitor controller", func() {
+	ctx := context.Background()
 
 	const (
-		ResourceName      = "test-resource-monitor"
-		ResourceType      = "ec2"
-		ResourceNamespace = "default"
+		ResourceName = "test-resource-monitor"
+		ResourceType = "ec2"
 
 		timeout  = time.Second * 3
 		interval = time.Millisecond * 250
 	)
 
-	ctx := context.Background()
+	ResourceNamespace := os.Getenv("NAMESPACE")
+	if ResourceNamespace == "" {
+		ResourceNamespace = "default"
+	}
 
 	Context("Resource monitor management", func() {
 		BeforeEach(func() {

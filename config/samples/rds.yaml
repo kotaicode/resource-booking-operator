@@ -1,0 +1,12 @@
+apiVersion: manager.kotaico.de/v1
+kind: ResourceMonitor
+metadata:
+  labels:
+    app.kubernetes.io/name: resourcemonitor
+    app.kubernetes.io/instance: rds
+    app.kubernetes.io/part-of: resource-booking-operator
+    app.kuberentes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: resource-booking-operator
+  name: rds
+spec:
+  type: rds
