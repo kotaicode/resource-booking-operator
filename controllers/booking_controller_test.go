@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -15,10 +16,10 @@ import (
 )
 
 var _ = Describe("Booking controller", func() {
+	ctx := context.Background()
 
 	const (
 		BookingName         = "test-booking"
-		BookingNamespace    = "default"
 		BookingResourceName = "analytics"
 	)
 
@@ -32,9 +33,13 @@ var _ = Describe("Booking controller", func() {
 
 		FinishedBookingStart = fmt.Sprintf("%d-01-01T00:00:00Z", time.Now().AddDate(-1, 0, 0).Year())
 		FinishedBookingEnd   = fmt.Sprintf("%d-01-02T00:00:00Z", time.Now().AddDate(-1, 0, 0).Year())
+
+		BookingNamespace = os.Getenv("NAMESPACE")
 	)
 
-	ctx := context.Background()
+	if BookingNamespace == "" {
+		BookingNamespace = "default"
+	}
 
 	var bookingSpec managerv1.BookingSpec
 	var booking *managerv1.Booking

@@ -115,6 +115,11 @@ func GetClient() (ClientCache, error) {
 	var err error
 	var config *rest.Config
 
+	namespace := os.Getenv("NAMESPACE")
+	if namespace == "" {
+		namespace = "default"
+	}
+
 	config, err = rest.InClusterConfig()
 	if err != nil {
 		config, err = clientcmd.BuildConfigFromFlags("", kubeconfig)
@@ -132,7 +137,7 @@ func GetClient() (ClientCache, error) {
 		return clientCache, err
 	}
 
-	clientCache.Cache, err = cache.New(config, cache.Options{Namespace: "default", Scheme: scheme})
+	clientCache.Cache, err = cache.New(config, cache.Options{Namespace: namespace, Scheme: scheme})
 	if err != nil {
 		return clientCache, err
 	}
