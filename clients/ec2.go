@@ -51,8 +51,8 @@ var mySession *session.Session = session.Must(session.NewSessionWithOptions(sess
 var ec2Client *ec2.EC2 = ec2.New(mySession)
 
 func init() {
-	if os.Getenv("AWS_ROLE_ARN") != "" {
-		err := assumeRole(ec2Client, os.Getenv("AWS_ROLE_ARN"))
+	if os.Getenv("AWS_ASSUME_ROLE_ARN") != "" {
+		err := assumeRole(ec2Client, os.Getenv("AWS_ASSUME_ROLE_ARN"))
 		if err != nil {
 			fmt.Println(err.Error())
 			os.Exit(1)
