@@ -132,11 +132,12 @@ func GetClient() (ClientCache, error) {
 	utilruntime.Must(managerv1.AddToScheme(scheme))
 	clientOpts := client.Options{Scheme: scheme}
 
-	clientCache.Client, err = client.New(config, clientOpts)
+	cli, err := client.New(config, clientOpts)
 	if err != nil {
 		return clientCache, err
 	}
 
+	clientCache.Client = client.NewNamespacedClient(cli, namespace)
 	clientCache.Cache, err = cache.New(config, cache.Options{Namespace: namespace, Scheme: scheme})
 	if err != nil {
 		return clientCache, err
