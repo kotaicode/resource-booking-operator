@@ -115,4 +115,3 @@ Kubebuilder is a hard development dependency of the project, so one of the best 
 
 ## Roadmap
 - Recurring bookings
-- Support AWS RDS
