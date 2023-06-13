@@ -79,7 +79,6 @@ func (r *BookingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		updateResource(r, ctx, &resources, &booking)
 	} else {
 		booking.Status.Status = managerv1.BookingScheduled
-		updateResource(r, ctx, &resources, &booking)
 	}
 
 	if booking.Status.Status == managerv1.BookingInProgress && time.Until(bookEnd) < time.Minute*20 &&
@@ -119,11 +118,10 @@ func updateResource(r *BookingReconciler, ctx context.Context, resources *manage
 	log := log.FromContext(ctx)
 
 	for _, rs := range resources.Items {
-
 		if booking.Status.Status == managerv1.BookingInProgress {
 			rs.Spec.BookedBy = booking.Spec.UserID
 			rs.Spec.BookedUntil = booking.Spec.EndAt
-		} else {
+		} else if booking.Status.Status == managerv1.BookingFinished {
 			rs.Spec.BookedUntil = ""
 		}
 
