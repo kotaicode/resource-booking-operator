@@ -15,7 +15,14 @@ spec:
     singular: bookingscheduler
   scope: Namespaced
   versions:
-  - name: v1
+  - additionalPrinterColumns:
+    - jsonPath: .spec.schedule
+      name: SCHEDULE
+      type: string
+    - jsonPath: .spec.duration
+      name: DURATION
+      type: integer
+    name: v1
     schema:
       openAPIV3Schema:
         description: BookingScheduler is the Schema for the bookingschedulers API

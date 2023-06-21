@@ -33,6 +33,8 @@ type BookingSchedulerStatus struct {
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:printcolumn:JSONPath=".spec.schedule",name="SCHEDULE",type="string"
+//+kubebuilder:printcolumn:JSONPath=".spec.duration",name="DURATION",type="integer"
 
 // BookingScheduler is the Schema for the bookingschedulers API
 type BookingScheduler struct {
