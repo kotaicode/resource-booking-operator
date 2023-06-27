@@ -127,8 +127,8 @@ func updateResource(r *BookingReconciler, ctx context.Context, rs *managerv1.Res
 		rs.Spec.BookedBy = booking.Spec.UserID
 		rs.Spec.BookedUntil = booking.Spec.EndAt
 	} else if booking.Status.Status == managerv1.BookingFinished {
-		rs.Spec.BookedUntil = ""
 		rs.Spec.BookedBy = ""
+		rs.Spec.BookedUntil = ""
 	}
 
 	err := r.Update(ctx, rs)
