@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -65,18 +66,23 @@ func (r *BookingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		log.Error(err, "Error parsing booking end")
 	}
 
-	var resources managerv1.ResourceList
-	if err := r.List(context.Background(), &resources, client.MatchingFields{"spec.tag": booking.Spec.ResourceName}); err != nil {
+	resNamespacedName := types.NamespacedName{
+		Namespace: req.Namespace,
+		Name:      booking.Spec.ResourceName,
+	}
+
+	var resource managerv1.Resource
+	if err := r.Get(context.Background(), resNamespacedName, &resource); err != nil {
 		log.Error(err, "Error listing bookings")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
 	if bookStart.Before(time.Now()) && time.Now().Before(bookEnd) {
 		booking.Status.Status = managerv1.BookingInProgress
-		updateResource(r, ctx, &resources, &booking)
+		updateResource(r, ctx, &resource, &booking)
 	} else if bookEnd.Before(time.Now()) {
 		booking.Status.Status = managerv1.BookingFinished
-		updateResource(r, ctx, &resources, &booking)
+		updateResource(r, ctx, &resource, &booking)
 	} else {
 		booking.Status.Status = managerv1.BookingScheduled
 	}
@@ -114,37 +120,25 @@ func (r *BookingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	return ctrl.Result{RequeueAfter: time.Duration(time.Minute * 1)}, nil
 }
 
-func updateResource(r *BookingReconciler, ctx context.Context, resources *managerv1.ResourceList, booking *managerv1.Booking) {
+func updateResource(r *BookingReconciler, ctx context.Context, rs *managerv1.Resource, booking *managerv1.Booking) {
 	log := log.FromContext(ctx)
 
-	for _, rs := range resources.Items {
-		if booking.Status.Status == managerv1.BookingInProgress {
-			rs.Spec.BookedBy = booking.Spec.UserID
-			rs.Spec.BookedUntil = booking.Spec.EndAt
-		} else if booking.Status.Status == managerv1.BookingFinished {
-			rs.Spec.BookedBy = ""
-			rs.Spec.BookedUntil = ""
-		}
+	if booking.Status.Status == managerv1.BookingInProgress {
+		rs.Spec.BookedBy = booking.Spec.UserID
+		rs.Spec.BookedUntil = booking.Spec.EndAt
+	} else if booking.Status.Status == managerv1.BookingFinished {
+		rs.Spec.BookedUntil = ""
+		rs.Spec.BookedBy = ""
+	}
 
-		err := r.Update(ctx, &rs)
-		if err != nil {
-			log.Error(err, "Error updating resource spec")
-		}
+	err := r.Update(ctx, rs)
+	if err != nil {
+		log.Error(err, "Error updating resource spec")
 	}
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *BookingReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	ctx := context.TODO()
-	log := log.FromContext(ctx)
-
-	err := mgr.GetFieldIndexer().IndexField(ctx, &managerv1.Resource{}, "spec.tag", func(o client.Object) []string {
-		return []string{o.(*managerv1.Resource).Spec.Tag}
-	})
-	if err != nil {
-		log.Error(err, "Error indexing booking field")
-	}
-
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&managerv1.Booking{}).
 		Complete(r)

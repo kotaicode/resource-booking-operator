@@ -8,5 +8,6 @@ metadata:
     app.kuberentes.io/managed-by: kustomize
     app.kubernetes.io/created-by: resource-booking-operator
   name: ec2
+  namespace: energis-stg
 spec:
   type: ec2
