@@ -122,6 +122,7 @@ func updateResource(r *BookingReconciler, ctx context.Context, resources *manage
 			rs.Spec.BookedBy = booking.Spec.UserID
 			rs.Spec.BookedUntil = booking.Spec.EndAt
 		} else if booking.Status.Status == managerv1.BookingFinished {
+			rs.Spec.BookedBy = ""
 			rs.Spec.BookedUntil = ""
 		}
 
