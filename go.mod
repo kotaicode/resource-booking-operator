@@ -9,6 +9,7 @@ require (
 	k8s.io/apimachinery v0.25.0
 	k8s.io/client-go v0.25.0
 	sigs.k8s.io/controller-runtime v0.13.0
+	github.com/robfig/cron/v3 v3.0.0
 )
 
 require (
