@@ -36,6 +36,10 @@ type BookingSchedulerReconciler struct {
 	Scheme *runtime.Scheme
 }
 
+//+kubebuilder:rbac:groups=manager.kotaico.de,resources=bookingschedulers,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=manager.kotaico.de,resources=bookingschedulers/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=manager.kotaico.de,resources=bookingschedulers/finalizers,verbs=update
+
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
 func (r *BookingSchedulerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
