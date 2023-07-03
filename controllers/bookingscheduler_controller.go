@@ -63,35 +63,45 @@ func (r *BookingSchedulerReconciler) Reconcile(ctx context.Context, req ctrl.Req
 
 	now := time.Now()
 
-	next := schedule.Next(now)
-	fmt.Println("Next scheduled time: ", next)
-
-	inMinutes := next.Sub(now)
-	fmt.Println("Next scheduled time in minutes: ", inMinutes)
-
-	// NOTE: Reconciliation starts a few miliseconds earlier which leads to double execution
-	// Quickfix: Add one second
-	// Maybe: Add miliseconds?
-	// Pause/Sleep before the time comes?
-	// TODO: Mention subsecond precision as an issue?
-	inMinutes += time.Second
+	nextSched := schedule.Next(now)
+	nextInMin := nextSched.Sub(now)
 
 	booking = setBooking(bookingScheduler, booking)
 
-	if err := r.Create(ctx, &booking); err != nil {
-		log.Error(err, "Error creating booking")
+	if bookingScheduler.Status.Next != "" {
+		statusNext, err := time.Parse(time.RFC3339, bookingScheduler.Status.Next)
+		if err != nil {
+			log.Error(err, "Error parsing status.next")
+			return ctrl.Result{}, err
+		}
+
+		if statusNext.Equal(now) || statusNext.Before(now) {
+			if err := r.Create(ctx, &booking); err != nil {
+				log.Error(err, "Error creating booking")
+				return ctrl.Result{}, err
+			}
+		}
+	}
+
+	bookingScheduler.Status.Next = nextSched.Format(time.RFC3339)
+
+	err = r.Status().Update(ctx, &bookingScheduler)
+	if err != nil {
+		log.Error(err, "Error updating booking scheduler status")
 		return ctrl.Result{}, err
 	}
 
-	return ctrl.Result{RequeueAfter: time.Duration(inMinutes)}, nil
+	return ctrl.Result{RequeueAfter: time.Duration(nextInMin)}, nil
 }
 
 // setBooking grabs the necessary information from the booking scheduler and sets it to the booking
 func setBooking(bookingScheduler managerv1.BookingScheduler, booking managerv1.Booking) managerv1.Booking {
 	booking.Spec = bookingScheduler.Spec.BookingTemplate
 
-	booking.Spec.StartAt = time.Now().Format(time.RFC3339)
-	endAt := time.Now().Add(time.Duration(bookingScheduler.Spec.Duration) * time.Minute)
+	now := time.Now()
+	booking.Spec.StartAt = now.Format(time.RFC3339)
+
+	endAt := now.Add(time.Duration(bookingScheduler.Spec.Duration) * time.Minute)
 	booking.Spec.EndAt = endAt.Format(time.RFC3339)
 
 	booking.Name = fmt.Sprintf("%s-%s-%d", booking.Spec.UserID, booking.Spec.ResourceName, endAt.Unix())

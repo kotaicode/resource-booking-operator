@@ -2,9 +2,9 @@
 # since it depends on service name and namespace that are out of this kustomize package.
 # It should be run by config/default
 resources:
-  - bases/manager.kotaico.de_resources.yaml
-  - bases/manager.kotaico.de_bookings.yaml
-  - bases/manager.kotaico.de_resourcemonitors.yaml
+- bases/manager.kotaico.de_resources.yaml
+- bases/manager.kotaico.de_bookings.yaml
+- bases/manager.kotaico.de_resourcemonitors.yaml
 - bases/manager.kotaico.de_bookingschedulers.yaml
 #+kubebuilder:scaffold:crdkustomizeresource
 
