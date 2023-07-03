@@ -29,12 +29,14 @@ type BookingSchedulerSpec struct {
 
 // BookingSchedulerStatus defines the observed state of BookingScheduler
 type BookingSchedulerStatus struct {
+	Next string `json:"next,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 //+kubebuilder:printcolumn:JSONPath=".spec.schedule",name="SCHEDULE",type="string"
 //+kubebuilder:printcolumn:JSONPath=".spec.duration",name="DURATION",type="integer"
+//+kubebuilder:printcolumn:JSONPath=".status.next",name="NEXT",type="string"
 
 // BookingScheduler is the Schema for the bookingschedulers API
 type BookingScheduler struct {

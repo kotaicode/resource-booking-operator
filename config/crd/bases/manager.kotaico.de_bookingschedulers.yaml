@@ -22,6 +22,9 @@ spec:
     - jsonPath: .spec.duration
       name: DURATION
       type: integer
+    - jsonPath: .status.next
+      name: NEXT
+      type: string
     name: v1
     schema:
       openAPIV3Schema:
@@ -78,6 +81,9 @@ spec:
             type: object
           status:
             description: BookingSchedulerStatus defines the observed state of BookingScheduler
+            properties:
+              next:
+                type: string
             type: object
         type: object
     served: true
