@@ -34,6 +34,32 @@ rules:
 - apiGroups:
   - manager.kotaico.de
   resources:
+  - bookingschedulers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - bookingschedulers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - bookingschedulers/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - manager.kotaico.de
+  resources:
   - resourcemonitors
   verbs:
   - create
