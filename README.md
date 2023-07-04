@@ -80,6 +80,7 @@ kubectl apply -f manager_v1_booking.yaml
 
 ### Create a booking scheduler
 BookingSchedulers automate the creation of bookings. If we want to have a booking be created on a given interval or time of the day — we can use a scheduler to do that for us.
+The scheduler expects a cron expression, duration, and a booking template to scaffold the created bookings from.
 
 ```yaml
 apiVersion: manager.kotaico.de/v1
