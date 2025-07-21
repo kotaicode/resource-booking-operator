@@ -1,0 +1,106 @@
+{{- if .Values.rbac.create }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "resource-booking-operator.fullname" . }}-role
+  labels:
+    {{- include "resource-booking-operator.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - bookings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - bookings/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - bookings/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - resourcemonitors
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - resourcemonitors/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - resourcemonitors/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - resources
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - resources/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - resources/status
+  verbs:
+  - get
+  - patch
+  - update
+{{- end }}
+
+{{- if and .Values.rbac.create .Values.rbac.createClusterRoleBinding }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "resource-booking-operator.fullname" . }}-rolebinding
+  labels:
+    {{- include "resource-booking-operator.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "resource-booking-operator.fullname" . }}-role
+subjects:
+- kind: ServiceAccount
+  name: {{ include "resource-booking-operator.serviceAccountName" . }}
+  namespace: {{ include "resource-booking-operator.namespace" . }}
+{{- end }} 

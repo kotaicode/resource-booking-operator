@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "resource-booking-operator.fullname" . }}
+  namespace: {{ include "resource-booking-operator.namespace" . }}
+  labels:
+    {{- include "resource-booking-operator.labels" . | nindent 4 }}
+    control-plane: controller-manager
+spec:
+  selector:
+    matchLabels:
+      {{- include "resource-booking-operator.selectorLabels" . | nindent 6 }}
+      control-plane: controller-manager
+  replicas: {{ .Values.operator.deployment.replicas }}
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      labels:
+        {{- include "resource-booking-operator.selectorLabels" . | nindent 8 }}
+        control-plane: controller-manager
+    spec:
+      {{- with .Values.operator.deployment.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.operator.deployment.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.operator.deployment.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.operator.deployment.securityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "resource-booking-operator.serviceAccountName" . }}
+      terminationGracePeriodSeconds: {{ .Values.operator.deployment.terminationGracePeriodSeconds }}
+      containers:
+      {{- if .Values.authProxy.enabled }}
+      - name: kube-rbac-proxy
+        image: {{ include "resource-booking-operator.authProxyImage" . }}
+        args:
+        - "--secure-listen-address=0.0.0.0:8443"
+        - "--upstream=http://127.0.0.1:8080/"
+        - "--logtostderr=true"
+        - "--v=0"
+        ports:
+        - containerPort: 8443
+          protocol: TCP
+          name: https
+        {{- with .Values.authProxy.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.authProxy.securityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      {{- end }}
+      - name: manager
+        image: {{ include "resource-booking-operator.image" . }}
+        args:
+        - "--leader-elect"
+        {{- if .Values.authProxy.enabled }}
+        - "--health-probe-bind-address=:8081"
+        - "--metrics-bind-address=127.0.0.1:8080"
+        {{- else }}
+        - "--health-probe-bind-address=:8081"
+        - "--metrics-bind-address=:8080"
+        {{- end }}
+        {{- with .Values.operator.deployment.containerSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.operator.deployment.livenessProbe }}
+        livenessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.operator.deployment.readinessProbe }}
+        readinessProbe:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.operator.deployment.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }} 

@@ -1,0 +1,186 @@
+# Default values for resource-booking-operator
+# This is a YAML-formatted file.
+
+# Global configuration
+global:
+  # Global image registry
+  imageRegistry: ""
+  # Global image pull policy
+  imagePullPolicy: IfNotPresent
+  # Global image pull secrets
+  imagePullSecrets: []
+
+# Operator configuration
+operator:
+  # Operator image configuration
+  image:
+    repository: controller
+    tag: latest
+    pullPolicy: IfNotPresent
+  
+  # Operator deployment configuration
+  deployment:
+    replicas: 1
+    # Node selector for deployment
+    nodeSelector: {}
+    # Tolerations for deployment
+    tolerations: []
+    # Affinity for deployment
+    affinity: {}
+    # Security context
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      fsGroup: 1000
+    # Container security context
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - "ALL"
+    # Resource limits and requests
+    resources:
+      limits:
+        cpu: 500m
+        memory: 128Mi
+      requests:
+        cpu: 10m
+        memory: 64Mi
+    # Liveness probe configuration
+    livenessProbe:
+      httpGet:
+        path: /healthz
+        port: 8081
+      initialDelaySeconds: 15
+      periodSeconds: 20
+    # Readiness probe configuration
+    readinessProbe:
+      httpGet:
+        path: /readyz
+        port: 8081
+      initialDelaySeconds: 5
+      periodSeconds: 10
+    # Termination grace period
+    terminationGracePeriodSeconds: 10
+    # Leader election configuration
+    leaderElection:
+      enabled: true
+      # Leader election namespace
+      namespace: system
+      # Leader election lease duration
+      leaseDuration: 15s
+      # Leader election renew deadline
+      renewDeadline: 10s
+      # Leader election retry period
+      retryPeriod: 2s
+
+# RBAC configuration
+rbac:
+  # Create RBAC resources
+  create: true
+  # Create cluster role binding
+  createClusterRoleBinding: true
+  # Service account configuration
+  serviceAccount:
+    # Create service account
+    create: true
+    # Service account name
+    name: "controller-manager"
+    # Service account annotations
+    annotations: {}
+    # Service account labels
+    labels: {}
+
+# CRD configuration
+crd:
+  # Install CRDs
+  install: true
+  # CRD validation
+  validation: true
+
+# Metrics configuration
+metrics:
+  # Enable metrics
+  enabled: true
+  # Service monitor configuration
+  serviceMonitor:
+    # Create service monitor
+    enabled: false
+    # Service monitor interval
+    interval: 30s
+    # Service monitor scrape timeout
+    scrapeTimeout: 10s
+    # Service monitor path
+    path: /metrics
+    # Service monitor port
+    port: https
+    # Service monitor scheme
+    scheme: https
+    # Service monitor TLS config
+    tlsConfig:
+      insecureSkipVerify: true
+
+# Auth proxy configuration
+authProxy:
+  # Enable auth proxy
+  enabled: true
+  # Auth proxy image
+  image:
+    repository: gcr.io/kubebuilder/kube-rbac-proxy
+    tag: v0.13.0
+    pullPolicy: IfNotPresent
+  # Auth proxy resources
+  resources:
+    limits:
+      cpu: 500m
+      memory: 128Mi
+    requests:
+      cpu: 5m
+      memory: 64Mi
+  # Auth proxy security context
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - "ALL"
+
+# Namespace configuration
+namespace:
+  # Create namespace
+  create: true
+  # Namespace name
+  name: system
+  # Namespace labels
+  labels:
+    control-plane: controller-manager
+    app.kubernetes.io/name: namespace
+    app.kubernetes.io/instance: system
+    app.kubernetes.io/component: manager
+    app.kubernetes.io/created-by: resource-booking-operator
+    app.kubernetes.io/part-of: resource-booking-operator
+    app.kubernetes.io/managed-by: helm
+
+# Labels and annotations
+labels: {}
+annotations: {}
+
+# Additional RBAC roles
+additionalRoles:
+  # Booking editor role
+  bookingEditor:
+    enabled: true
+  # Booking viewer role
+  bookingViewer:
+    enabled: true
+  # Resource editor role
+  resourceEditor:
+    enabled: true
+  # Resource viewer role
+  resourceViewer:
+    enabled: true
+  # Resource monitor editor role
+  resourceMonitorEditor:
+    enabled: true
+  # Resource monitor viewer role
+  resourceMonitorViewer:
+    enabled: true 
