@@ -14,7 +14,7 @@ global:
 operator:
   # Operator image configuration
   image:
-    repository: controller
+    repository: kotaicode/resource-booking-operator
     tag: latest
     pullPolicy: IfNotPresent
   
