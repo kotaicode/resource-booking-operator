@@ -1,0 +1,75 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+The Resource Booking Operator has been installed with the following components:
+
+{{- if .Values.namespace.create }}
+- Namespace: {{ include "resource-booking-operator.namespace" . }}
+{{- end }}
+{{- if .Values.rbac.serviceAccount.create }}
+- Service Account: {{ include "resource-booking-operator.serviceAccountName" . }}
+{{- end }}
+{{- if .Values.rbac.create }}
+- Cluster Role: {{ include "resource-booking-operator.fullname" . }}-role
+- Cluster Role Binding: {{ include "resource-booking-operator.fullname" . }}-rolebinding
+{{- end }}
+- Deployment: {{ include "resource-booking-operator.fullname" . }}
+- Service: {{ include "resource-booking-operator.fullname" . }}-metrics-service
+{{- if .Values.crd.install }}
+- Custom Resource Definitions:
+  - resources.manager.kotaico.de
+  - bookings.manager.kotaico.de
+  - resourcemonitors.manager.kotaico.de
+{{- end }}
+{{- if and .Values.metrics.enabled .Values.metrics.serviceMonitor.enabled }}
+- Service Monitor: {{ include "resource-booking-operator.fullname" . }}-metrics-monitor
+{{- end }}
+
+The operator is now ready to manage resource bookings. You can create custom resources:
+
+Example Resource:
+```yaml
+apiVersion: manager.kotaico.de/v1
+kind: Resource
+metadata:
+  name: example-resource
+spec:
+  type: "ec2"
+  tag: "production"
+  booked_by: "user@example.com"
+  booked_until: "2024-12-31T23:59:59Z"
+```
+
+Example Booking:
+```yaml
+apiVersion: manager.kotaico.de/v1
+kind: Booking
+metadata:
+  name: example-booking
+spec:
+  resource_name: "example-resource"
+  user_id: "user@example.com"
+  start_at: "2024-01-01T09:00:00Z"
+  end_at: "2024-01-01T17:00:00Z"
+  notifications:
+    - type: "email"
+      recipient: "user@example.com"
+```
+
+Example Resource Monitor:
+```yaml
+apiVersion: manager.kotaico.de/v1
+kind: ResourceMonitor
+metadata:
+  name: example-monitor
+spec:
+  type: "ec2"
+```
+
+For more information, visit: https://github.com/kotaicode/resource-booking-operator 

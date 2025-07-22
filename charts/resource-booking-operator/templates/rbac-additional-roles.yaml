@@ -1,0 +1,161 @@
+{{- if .Values.additionalRoles.bookingEditor.enabled }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "resource-booking-operator.fullname" . }}-booking-editor
+  labels:
+    {{- include "resource-booking-operator.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - bookings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - bookings/status
+  verbs:
+  - get
+{{- end }}
+
+{{- if .Values.additionalRoles.bookingViewer.enabled }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "resource-booking-operator.fullname" . }}-booking-viewer
+  labels:
+    {{- include "resource-booking-operator.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - bookings
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - bookings/status
+  verbs:
+  - get
+{{- end }}
+
+{{- if .Values.additionalRoles.resourceEditor.enabled }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "resource-booking-operator.fullname" . }}-resource-editor
+  labels:
+    {{- include "resource-booking-operator.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - resources
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - resources/status
+  verbs:
+  - get
+{{- end }}
+
+{{- if .Values.additionalRoles.resourceViewer.enabled }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "resource-booking-operator.fullname" . }}-resource-viewer
+  labels:
+    {{- include "resource-booking-operator.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - resources
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - resources/status
+  verbs:
+  - get
+{{- end }}
+
+{{- if .Values.additionalRoles.resourceMonitorEditor.enabled }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "resource-booking-operator.fullname" . }}-resourcemonitor-editor
+  labels:
+    {{- include "resource-booking-operator.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - resourcemonitors
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - resourcemonitors/status
+  verbs:
+  - get
+{{- end }}
+
+{{- if .Values.additionalRoles.resourceMonitorViewer.enabled }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "resource-booking-operator.fullname" . }}-resourcemonitor-viewer
+  labels:
+    {{- include "resource-booking-operator.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - resourcemonitors
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - resourcemonitors/status
+  verbs:
+  - get
+{{- end }} 

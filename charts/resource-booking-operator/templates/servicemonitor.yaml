@@ -1,0 +1,26 @@
+{{- if and .Values.metrics.enabled .Values.metrics.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "resource-booking-operator.fullname" . }}-metrics-monitor
+  namespace: {{ include "resource-booking-operator.namespace" . }}
+  labels:
+    {{- include "resource-booking-operator.labels" . | nindent 4 }}
+    control-plane: controller-manager
+spec:
+  endpoints:
+    - path: {{ .Values.metrics.serviceMonitor.path }}
+      port: {{ .Values.metrics.serviceMonitor.port }}
+      scheme: {{ .Values.metrics.serviceMonitor.scheme }}
+      interval: {{ .Values.metrics.serviceMonitor.interval }}
+      scrapeTimeout: {{ .Values.metrics.serviceMonitor.scrapeTimeout }}
+      bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+      {{- with .Values.metrics.serviceMonitor.tlsConfig }}
+      tlsConfig:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  selector:
+    matchLabels:
+      {{- include "resource-booking-operator.selectorLabels" . | nindent 6 }}
+      control-plane: controller-manager
+{{- end }} 
