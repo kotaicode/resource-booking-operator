@@ -154,16 +154,16 @@ $(ENVTEST): $(LOCALBIN)
 ## Experiments
 .PHONY: list-instances
 list-instances:
-	aws ec2 describe-instances --query "Reservations[].Instances[].{Instance:InstanceId,Managed:Tags[?Key=='resource-booking/managed']|[0].Value,Resource:Tags[?Key=='resource-booking/application']|[0].Value}" --output table
+	aws ec2 describe-instances --query "Reservations[].Instances[].{Instance:InstanceId,Managed:Tags[?Key=='resource-booking-managed']|[0].Value,Resource:Tags[?Key=='resource-booking-application']|[0].Value}" --output table
 
 .PHONY: tag-instances
 tag-instances:
 	aws ec2 create-tags \
 		--resources $(instances) \
-		--tags Key=resource-booking/application,Value=$(tag)
+		--tags Key=resource-booking-application,Value=$(tag)
 
 .PHONY: mark-managed
 mark-managed:
 	aws ec2 create-tags \
 		--resources $(instances) \
-		--tags Key=resource-booking/managed,Value=$(enable)
+		--tags Key=resource-booking-managed,Value=$(enable)

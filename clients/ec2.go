@@ -22,8 +22,8 @@ const (
 	statusStopped  int64 = 80
 
 	// DefaultTagKey is used to store the tag which marks the instance as managed by the operator
-	defaultTagKey         string = "resource-booking/application"
-	resourceMonitorTagKey string = "resource-booking/managed"
+	defaultTagKey         string = "resource-booking-application"
+	resourceMonitorTagKey string = "resource-booking-managed"
 )
 
 var (
@@ -35,7 +35,7 @@ type EC2Monitor struct {
 	Type string
 }
 
-// Resource represents a collection of EC2 instances grouped by a common "resource-booking/application" tag.
+// Resource represents a collection of EC2 instances grouped by a common "resource-booking-application" tag.
 type EC2Resource struct {
 	NameTag string
 }
