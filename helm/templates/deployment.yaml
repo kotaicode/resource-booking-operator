@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "resource-booking-operator.fullname" . }}
+  namespace: {{ .Values.operator.namespace }}
+  labels:
+    {{- include "resource-booking-operator.labels" . | nindent 4 }}
+    control-plane: controller-manager
+    app.kubernetes.io/component: manager
+spec:
+  selector:
+    matchLabels:
+      {{- include "resource-booking-operator.selectorLabels" . | nindent 6 }}
+      control-plane: controller-manager
+  replicas: {{ .Values.operator.replicas }}
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      labels:
+        {{- include "resource-booking-operator.selectorLabels" . | nindent 8 }}
+        control-plane: controller-manager
+    spec:
+      {{- if .Values.operator.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.operator.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "resource-booking-operator.serviceAccountName" . }}
+      {{- with .Values.operator.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.operator.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.operator.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.operator.securityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.operator.extraVolumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: manager
+        image: "{{ .Values.operator.image.repository }}:{{ .Values.operator.image.tag }}"
+        imagePullPolicy: {{ .Values.operator.image.pullPolicy }}
+        command:
+        - /manager
+        args:
+        {{- if .Values.operator.leaderElection.enabled }}
+        - --leader-elect
+        {{- end }}
+        {{- if .Values.operator.metrics.enabled }}
+        - --metrics-bind-address=:{{ .Values.operator.metrics.port }}
+        {{- end }}
+        {{- if .Values.operator.healthProbe.enabled }}
+        - --health-probe-bind-address=:{{ .Values.operator.healthProbe.port }}
+        {{- end }}
+        {{- with .Values.operator.env }}
+        env:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- with .Values.operator.containerSecurityContext }}
+        securityContext:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        {{- if .Values.operator.livenessProbe.enabled }}
+        livenessProbe:
+          {{- toYaml .Values.operator.livenessProbe | nindent 10 }}
+        {{- end }}
+        {{- if .Values.operator.readinessProbe.enabled }}
+        readinessProbe:
+          {{- toYaml .Values.operator.readinessProbe | nindent 10 }}
+        {{- end }}
+        resources:
+          {{- toYaml .Values.operator.resources | nindent 10 }}
+        {{- with .Values.operator.extraVolumeMounts }}
+        volumeMounts:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      terminationGracePeriodSeconds: 10 

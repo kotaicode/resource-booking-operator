@@ -1,0 +1,178 @@
+# Default values for resource-booking-operator
+# This is a YAML-formatted file.
+
+# Global configuration
+global:
+  # Enable or disable the entire chart
+  enabled: true
+
+# Operator configuration
+operator:
+  # Image configuration
+  image:
+    repository: kotaicode/resource-booking-operator
+    tag: "scheduler-5"
+    pullPolicy: IfNotPresent
+  
+  # Image pull secrets
+  imagePullSecrets: []
+  
+  # Replica count
+  replicas: 1
+  
+  # Namespace where the operator will be deployed
+  namespace: "resource-booking-operator"
+  
+  # Node selector
+  nodeSelector: {}
+  
+  # Tolerations
+  tolerations: []
+  
+  # Affinity rules
+  affinity: {}
+  
+  # Security context
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 65532
+    runAsGroup: 65532
+    fsGroup: 65532
+  
+  # Container security context
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - "ALL"
+    readOnlyRootFilesystem: true
+  
+  # Resource limits and requests
+  resources:
+    limits:
+      cpu: 500m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi
+  
+  # Liveness probe configuration
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: 8081
+    initialDelaySeconds: 15
+    periodSeconds: 20
+    timeoutSeconds: 5
+    failureThreshold: 3
+  
+  # Readiness probe configuration
+  readinessProbe:
+    httpGet:
+      path: /readyz
+      port: 8081
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  
+  # Metrics configuration
+  metrics:
+    enabled: true
+    port: 8080
+    service:
+      type: ClusterIP
+      port: 8080
+  
+  # Health probe configuration
+  healthProbe:
+    enabled: true
+    port: 8081
+    service:
+      type: ClusterIP
+      port: 8081
+  
+  # Leader election configuration
+  leaderElection:
+    enabled: false
+    leaderElectionID: "d042a3ce.kotaico.de"
+  
+  # Webhook configuration
+  webhook:
+    enabled: false
+    port: 9443
+    service:
+      type: ClusterIP
+      port: 9443
+  
+  # Service account configuration
+  serviceAccount:
+    create: true
+    name: "resource-booking-operator"
+    annotations: {}
+  
+  # RBAC configuration
+  rbac:
+    create: true
+    rules: []
+  
+  # Cluster role binding
+  clusterRoleBinding:
+    create: true
+    name: "resource-booking-operator"
+  
+  # Environment variables
+  env: []
+  
+  # Extra volumes
+  extraVolumes: []
+  
+  # Extra volume mounts
+  extraVolumeMounts: []
+
+# CRD installation
+crd:
+  # Install CRDs
+  install: true
+  
+  # CRD cleanup policy
+  cleanupPolicy: "before-install"
+
+# Service monitor for Prometheus
+serviceMonitor:
+  enabled: false
+  interval: "30s"
+  scrapeTimeout: "10s"
+  path: "/metrics"
+  port: "metrics"
+
+# Pod disruption budget
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+
+# Horizontal pod autoscaler
+hpa:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+# Network policies
+networkPolicy:
+  enabled: false
+  ingress: []
+  egress: [] 

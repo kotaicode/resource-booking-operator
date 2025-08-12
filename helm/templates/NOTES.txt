@@ -1,0 +1,67 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+{{- if .Values.crd.install }}
+The Custom Resource Definitions (CRDs) have been installed. You can now create:
+
+- Resources: `kubectl apply -f - <<EOF
+apiVersion: manager.kotaico.de/v1
+kind: Resource
+metadata:
+  name: example-ec2
+spec:
+  type: ec2
+  name: example-instance
+  region: eu-central-1
+EOF`
+
+- ResourceMonitors: `kubectl apply -f - <<EOF
+apiVersion: manager.kotaico.de/v1
+kind: ResourceMonitor
+metadata:
+  name: ec2-monitor
+spec:
+  type: ec2
+  schedule: "*/5 * * * *"
+EOF`
+
+- Bookings: `kubectl apply -f - <<EOF
+apiVersion: manager.kotaico.de/v1
+kind: Booking
+metadata:
+  name: example-booking
+spec:
+  resourceName: example-ec2
+  startTime: "2024-01-01T10:00:00Z"
+  endTime: "2024-01-01T18:00:00Z"
+  user: "developer"
+EOF`
+
+- BookingSchedulers: `kubectl apply -f - <<EOF
+apiVersion: manager.kotaico.de/v1
+kind: BookingScheduler
+metadata:
+  name: daily-scheduler
+spec:
+  schedule: "0 9 * * *"
+EOF`
+{{- end }}
+
+{{- if .Values.operator.metrics.enabled }}
+Metrics are available at:
+  $ kubectl port-forward -n {{ .Values.operator.namespace }} svc/{{ include "resource-booking-operator.fullname" . }}-metrics {{ .Values.operator.metrics.port }}:{{ .Values.operator.metrics.port }}
+{{- end }}
+
+{{- if .Values.operator.healthProbe.enabled }}
+Health checks are available at:
+  $ kubectl port-forward -n {{ .Values.operator.namespace }} svc/{{ include "resource-booking-operator.fullname" . }}-health {{ .Values.operator.healthProbe.port }}:{{ .Values.operator.healthProbe.port }}
+{{- end }}
+
+For more information, visit:
+  https://github.com/kotaicode/resource-booking-operator 

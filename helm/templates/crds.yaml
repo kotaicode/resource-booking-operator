@@ -1,0 +1,268 @@
+{{- if .Values.crd.install }}
+# Custom Resource Definitions for Resource Booking Operator
+# These CRDs define the custom resources that the operator manages
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: resources.manager.kotaico.de
+  labels:
+    {{- include "resource-booking-operator.labels" . | nindent 4 }}
+spec:
+  group: manager.kotaico.de
+  names:
+    kind: Resource
+    listKind: ResourceList
+    plural: resources
+    singular: resource
+    shortNames:
+    - res
+  scope: Namespaced
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              type:
+                type: string
+                description: Type of the resource (e.g., ec2, rds)
+              name:
+                type: string
+                description: Name of the resource
+              region:
+                type: string
+                description: AWS region where the resource is located
+              tags:
+                type: object
+                additionalProperties:
+                  type: string
+                description: AWS tags for the resource
+          status:
+            type: object
+            properties:
+              phase:
+                type: string
+                description: Current phase of the resource
+              lastUpdated:
+                type: string
+                format: date-time
+                description: Last time the resource was updated
+    additionalPrinterColumns:
+    - name: Type
+      type: string
+      jsonPath: .spec.type
+    - name: Name
+      type: string
+      jsonPath: .spec.name
+    - name: Region
+      type: string
+      jsonPath: .spec.region
+    - name: Phase
+      type: string
+      jsonPath: .status.phase
+    - name: Age
+      type: date
+      jsonPath: .metadata.creationTimestamp
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: resourcemonitors.manager.kotaico.de
+  labels:
+    {{- include "resource-booking-operator.labels" . | nindent 4 }}
+spec:
+  group: manager.kotaico.de
+  names:
+    kind: ResourceMonitor
+    listKind: ResourceMonitorList
+    plural: resourcemonitors
+    singular: resourcemonitor
+    shortNames:
+    - rmon
+  scope: Namespaced
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              type:
+                type: string
+                description: Type of resources to monitor (e.g., ec2, rds)
+              schedule:
+                type: string
+                description: Cron schedule for monitoring
+              filters:
+                type: object
+                additionalProperties:
+                  type: string
+                description: Filters to apply when monitoring resources
+          status:
+            type: object
+            properties:
+              lastRun:
+                type: string
+                format: date-time
+                description: Last time the monitor ran
+              nextRun:
+                type: string
+                format: date-time
+                description: Next scheduled run
+    additionalPrinterColumns:
+    - name: Type
+      type: string
+      jsonPath: .spec.type
+    - name: Schedule
+      type: string
+      jsonPath: .spec.schedule
+    - name: Last Run
+      type: string
+      jsonPath: .status.lastRun
+    - name: Age
+      type: date
+      jsonPath: .metadata.creationTimestamp
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: bookings.manager.kotaico.de
+  labels:
+    {{- include "resource-booking-operator.labels" . | nindent 4 }}
+spec:
+  group: manager.kotaico.de
+  names:
+    kind: Booking
+    listKind: BookingList
+    plural: bookings
+    singular: booking
+    shortNames:
+    - book
+  scope: Namespaced
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              resourceName:
+                type: string
+                description: Name of the resource to book
+              startTime:
+                type: string
+                format: date-time
+                description: Start time of the booking
+              endTime:
+                type: string
+                format: date-time
+                description: End time of the booking
+              user:
+                type: string
+                description: User making the booking
+          status:
+            type: object
+            properties:
+              phase:
+                type: string
+                description: Current phase of the booking
+              lastUpdated:
+                type: string
+                format: date-time
+                description: Last time the booking was updated
+    additionalPrinterColumns:
+    - name: Resource
+      type: string
+      jsonPath: .spec.resourceName
+    - name: Start Time
+      type: string
+      jsonPath: .spec.startTime
+    - name: End Time
+      type: string
+      jsonPath: .spec.endTime
+    - name: User
+      type: string
+      jsonPath: .spec.user
+    - name: Phase
+      type: string
+      jsonPath: .status.phase
+    - name: Age
+      type: date
+      jsonPath: .metadata.creationTimestamp
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: bookingschedulers.manager.kotaico.de
+  labels:
+    {{- include "resource-booking-operator.labels" . | nindent 4 }}
+spec:
+  group: manager.kotaico.de
+  names:
+    kind: BookingScheduler
+    listKind: BookingSchedulerList
+    plural: bookingschedulers
+    singular: bookingscheduler
+    shortNames:
+    - sched
+  scope: Namespaced
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              schedule:
+                type: string
+                description: Cron schedule for the scheduler
+              template:
+                type: object
+                description: Template for creating bookings
+          status:
+            type: object
+            properties:
+              lastRun:
+                type: string
+                format: date-time
+                description: Last time the scheduler ran
+              nextRun:
+                type: string
+                format: date-time
+                description: Next scheduled run
+    additionalPrinterColumns:
+    - name: Schedule
+      type: string
+      jsonPath: .spec.schedule
+    - name: Last Run
+      type: string
+      jsonPath: .status.lastRun
+    - name: Next Run
+      type: string
+      jsonPath: .status.nextRun
+    - name: Age
+      type: date
+      jsonPath: .metadata.creationTimestamp
+{{- end }} 

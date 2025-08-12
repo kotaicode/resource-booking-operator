@@ -1,0 +1,95 @@
+{{- if .Values.operator.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "resource-booking-operator.fullname" . }}
+  labels:
+    {{- include "resource-booking-operator.labels" . | nindent 4 }}
+rules:
+# Custom resource permissions
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - bookings
+  - bookingschedulers
+  - resourcemonitors
+  - resources
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - bookings/finalizers
+  - bookingschedulers/finalizers
+  - resourcemonitors/finalizers
+  - resources/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - manager.kotaico.de
+  resources:
+  - bookings/status
+  - bookingschedulers/status
+  - resourcemonitors/status
+  - resources/status
+  verbs:
+  - get
+  - patch
+  - update
+# Core Kubernetes permissions
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - events
+  - secrets
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - statefulsets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - batch
+  resources:
+  - cronjobs
+  - jobs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+# Event permissions
+- apiGroups:
+  - events.k8s.io
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+{{- end }} 
