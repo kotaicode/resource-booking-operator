@@ -25,48 +25,76 @@ spec:
     storage: true
     schema:
       openAPIV3Schema:
+        description: Resource is the Schema for the resources API
         type: object
         properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/specs/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
           spec:
+            description: ResourceSpec defines the desired state of Resource
             type: object
             properties:
+              booked_by:
+                type: string
+                description: User who has booked the resource
+              booked_until:
+                type: string
+                description: When the booking expires
+              tag:
+                type: string
+                description: Tag for the resource
               type:
                 type: string
                 description: Type of the resource (e.g., ec2, rds)
-              name:
-                type: string
-                description: Name of the resource
-              region:
-                type: string
-                description: AWS region where the resource is located
-              tags:
-                type: object
-                additionalProperties:
-                  type: string
-                description: AWS tags for the resource
+            required:
+            - booked_by
+            - booked_until
+            - tag
+            - type
           status:
+            description: ResourceStatus defines the observed state of Resource
             type: object
             properties:
-              phase:
+              instances:
+                type: integer
+                description: Number of instances
+              locked_by:
                 type: string
-                description: Current phase of the resource
-              lastUpdated:
+                description: User who has locked the resource
+              locked_until:
                 type: string
-                format: date-time
-                description: Last time the resource was updated
+                description: When the lock expires
+              running:
+                type: integer
+                description: Number of running instances
+              status:
+                type: string
+                description: Current status of the resource
+            required:
+            - instances
+            - locked_by
+            - locked_until
+            - running
+            - status
     additionalPrinterColumns:
     - name: Type
       type: string
       jsonPath: .spec.type
-    - name: Name
+    - name: Tag
       type: string
-      jsonPath: .spec.name
-    - name: Region
+      jsonPath: .spec.tag
+    - name: Booked By
       type: string
-      jsonPath: .spec.region
-    - name: Phase
+      jsonPath: .spec.booked_by
+    - name: Status
       type: string
-      jsonPath: .status.phase
+      jsonPath: .status.status
     - name: Age
       type: date
       jsonPath: .metadata.creationTimestamp
