@@ -12,6 +12,16 @@ spec:
   scope: Namespaced
   versions:
   - name: v1
+    additionalPrinterColumns:
+    - jsonPath: .spec.start_at
+      name: START
+      type: string
+    - jsonPath: .spec.end_at
+      name: END
+      type: string
+    - jsonPath: .status.status
+      name: STATUS
+      type: string
     schema:
       openAPIV3Schema:
         description: Booking is the Schema for the bookings API
@@ -27,55 +37,38 @@ spec:
           spec:
             description: BookingSpec defines the desired state of Booking
             properties:
-              endAt:
-                description: EndAt is the end time of the booking
+              end_at:
                 type: string
               notifications:
-                description: Notifications is a list of notification configurations
                 items:
                   properties:
-                    email:
-                      description: Email notification configuration
-                      properties:
-                        to:
-                          description: To is the email address to send notifications to
-                          type: string
-                      type: object
-                    slack:
-                      description: Slack notification configuration
-                      properties:
-                        channel:
-                          description: Channel is the Slack channel to send notifications to
-                          type: string
-                        webhook:
-                          description: Webhook is the Slack webhook URL
-                          type: string
-                      type: object
+                    recipient:
+                      type: string
+                    type:
+                      type: string
+                  required:
+                  - recipient
+                  - type
                   type: object
                 type: array
-              resourceName:
-                description: ResourceName is the name of the resource to book
+              resource_name:
                 type: string
-              startAt:
-                description: StartAt is the start time of the booking
+              start_at:
                 type: string
-              userID:
-                description: UserID is the ID of the user making the booking
+              user_id:
                 type: string
             required:
-            - endAt
-            - resourceName
-            - startAt
-            - userID
+            - end_at
+            - resource_name
+            - start_at
+            - user_id
             type: object
           status:
             description: BookingStatus defines the observed state of Booking
             properties:
-              notificationSent:
-                description: NotificationSent indicates whether notifications have been sent
+              notification_sent:
                 type: boolean
               status:
-                description: Status is the current status of the booking
                 type: string
             type: object
         type: object
@@ -98,6 +91,16 @@ spec:
   scope: Namespaced
   versions:
   - name: v1
+    additionalPrinterColumns:
+    - jsonPath: .spec.schedule
+      name: SCHEDULE
+      type: string
+    - jsonPath: .spec.duration
+      name: DURATION
+      type: integer
+    - jsonPath: .status.next
+      name: NEXT
+      type: string
     schema:
       openAPIV3Schema:
         description: BookingScheduler is the Schema for the bookingschedulers API
@@ -113,39 +116,44 @@ spec:
           spec:
             description: BookingSchedulerSpec defines the desired state of BookingScheduler
             properties:
-              cronExpression:
-                description: CronExpression is the cron expression for scheduling
+              bookingTemplate:
+                description: BookingSpec defines the desired state of Booking
+                properties:
+                  end_at:
+                    type: string
+                  notifications:
+                    items:
+                      properties:
+                        recipient:
+                          type: string
+                        type:
+                          type: string
+                      required:
+                      - recipient
+                      - type
+                      type: object
+                    type: array
+                  resource_name:
+                    type: string
+                  start_at:
+                    type: string
+                  user_id:
+                    type: string
+                required:
+                - end_at
+                - resource_name
+                - start_at
+                - user_id
+                type: object
+              duration:
+                type: integer
+              schedule:
                 type: string
-              endTime:
-                description: EndTime is the end time for the scheduler
-                type: string
-              resourceName:
-                description: ResourceName is the name of the resource to schedule
-                type: string
-              startTime:
-                description: StartTime is the start time for the scheduler
-                type: string
-              userID:
-                description: UserID is the ID of the user for the scheduler
-                type: string
-            required:
-            - cronExpression
-            - resourceName
-            - userID
             type: object
           status:
             description: BookingSchedulerStatus defines the observed state of BookingScheduler
             properties:
-              lastRunTime:
-                description: LastRunTime is the last time the scheduler ran
-                format: date-time
-                type: string
-              nextRunTime:
-                description: NextRunTime is the next time the scheduler will run
-                format: date-time
-                type: string
-              status:
-                description: Status is the current status of the scheduler
+              next:
                 type: string
             type: object
         type: object
@@ -168,6 +176,22 @@ spec:
   scope: Namespaced
   versions:
   - name: v1
+    additionalPrinterColumns:
+    - jsonPath: .status.locked_by
+      name: LOCKED BY
+      type: string
+    - jsonPath: .status.locked_until
+      name: LOCKED UNTIL
+      type: string
+    - jsonPath: .status.instances
+      name: INSTANCES
+      type: integer
+    - jsonPath: .status.running
+      name: RUNNING
+      type: integer
+    - jsonPath: .status.status
+      name: STATUS
+      type: string
     schema:
       openAPIV3Schema:
         description: Resource is the Schema for the resources API
@@ -183,19 +207,17 @@ spec:
           spec:
             description: ResourceSpec defines the desired state of Resource
             properties:
-              bookedBy:
-                description: BookedBy is the ID of the user who has booked this resource
+              booked_by:
                 type: string
-              bookedUntil:
-                description: BookedUntil is the time until which this resource is booked
+              booked_until:
                 type: string
               tag:
-                description: Tag is the tag used to identify this resource
                 type: string
               type:
-                description: Type is the type of resource (e.g., ec2, rds)
                 type: string
             required:
+            - booked_by
+            - booked_until
             - tag
             - type
             type: object
@@ -203,21 +225,21 @@ spec:
             description: ResourceStatus defines the observed state of Resource
             properties:
               instances:
-                description: Instances is the number of available instances
                 type: integer
-              lockedBy:
-                description: LockedBy is the ID of the user who has locked this resource
+              locked_by:
                 type: string
-              lockedUntil:
-                description: LockedUntil is the time until which this resource is locked
-                format: date-time
+              locked_until:
                 type: string
               running:
-                description: Running is the number of running instances
                 type: integer
               status:
-                description: Status is the current status of the resource
                 type: string
+            required:
+            - instances
+            - locked_by
+            - locked_until
+            - running
+            - status
             type: object
         type: object
     served: true
