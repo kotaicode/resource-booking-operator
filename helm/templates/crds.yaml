@@ -1,175 +1,7 @@
-{{- if .Values.crd.install }}
-# Custom Resource Definitions for Resource Booking Operator
-# These CRDs define the custom resources that the operator manages
-
----
-apiVersion: apiextensions.k8s.io/v1
-kind: CustomResourceDefinition
-metadata:
-  name: resources.manager.kotaico.de
-  labels:
-    {{- include "resource-booking-operator.labels" . | nindent 4 }}
-spec:
-  group: manager.kotaico.de
-  names:
-    kind: Resource
-    listKind: ResourceList
-    plural: resources
-    singular: resource
-    shortNames:
-    - res
-  scope: Namespaced
-  versions:
-  - name: v1
-    served: true
-    storage: true
-    schema:
-      openAPIV3Schema:
-        description: Resource is the Schema for the resources API
-        type: object
-        properties:
-          apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-            type: string
-          kind:
-            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/specs/api-conventions.md#types-kinds'
-            type: string
-          metadata:
-            type: object
-          spec:
-            description: ResourceSpec defines the desired state of Resource
-            type: object
-            properties:
-              booked_by:
-                type: string
-                description: User who has booked the resource
-              booked_until:
-                type: string
-                description: When the booking expires
-              tag:
-                type: string
-                description: Tag for the resource
-              type:
-                type: string
-                description: Type of the resource (e.g., ec2, rds)
-            required:
-            - booked_by
-            - booked_until
-            - tag
-            - type
-          status:
-            description: ResourceStatus defines the observed state of Resource
-            type: object
-            properties:
-              instances:
-                type: integer
-                description: Number of instances
-              locked_by:
-                type: string
-                description: User who has locked the resource
-              locked_until:
-                type: string
-                description: When the lock expires
-              running:
-                type: integer
-                description: Number of running instances
-              status:
-                type: string
-                description: Current status of the resource
-            required:
-            - instances
-            - locked_by
-            - locked_until
-            - running
-            - status
-    additionalPrinterColumns:
-    - name: Type
-      type: string
-      jsonPath: .spec.type
-    - name: Tag
-      type: string
-      jsonPath: .spec.tag
-    - name: Booked By
-      type: string
-      jsonPath: .spec.booked_by
-    - name: Status
-      type: string
-      jsonPath: .status.status
-    - name: Age
-      type: date
-      jsonPath: .metadata.creationTimestamp
-
----
-apiVersion: apiextensions.k8s.io/v1
-kind: CustomResourceDefinition
-metadata:
-  name: resourcemonitors.manager.kotaico.de
-  labels:
-    {{- include "resource-booking-operator.labels" . | nindent 4 }}
-spec:
-  group: manager.kotaico.de
-  names:
-    kind: ResourceMonitor
-    listKind: ResourceMonitorList
-    plural: resourcemonitors
-    singular: resourcemonitor
-    shortNames:
-    - rmon
-  scope: Namespaced
-  versions:
-  - name: v1
-    served: true
-    storage: true
-    schema:
-      openAPIV3Schema:
-        type: object
-        properties:
-          spec:
-            type: object
-            properties:
-              type:
-                type: string
-                description: Type of resources to monitor (e.g., ec2, rds)
-              schedule:
-                type: string
-                description: Cron schedule for monitoring
-              filters:
-                type: object
-                additionalProperties:
-                  type: string
-                description: Filters to apply when monitoring resources
-          status:
-            type: object
-            properties:
-              lastRun:
-                type: string
-                format: date-time
-                description: Last time the monitor ran
-              nextRun:
-                type: string
-                format: date-time
-                description: Next scheduled run
-    additionalPrinterColumns:
-    - name: Type
-      type: string
-      jsonPath: .spec.type
-    - name: Schedule
-      type: string
-      jsonPath: .spec.schedule
-    - name: Last Run
-      type: string
-      jsonPath: .status.lastRun
-    - name: Age
-      type: date
-      jsonPath: .metadata.creationTimestamp
-
----
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   name: bookings.manager.kotaico.de
-  labels:
-    {{- include "resource-booking-operator.labels" . | nindent 4 }}
 spec:
   group: manager.kotaico.de
   names:
@@ -177,82 +9,85 @@ spec:
     listKind: BookingList
     plural: bookings
     singular: booking
-    shortNames:
-    - book
   scope: Namespaced
   versions:
   - name: v1
-    served: true
-    storage: true
     schema:
       openAPIV3Schema:
-        type: object
+        description: Booking is the Schema for the bookings API
         properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
           spec:
-            type: object
+            description: BookingSpec defines the desired state of Booking
             properties:
-              resource_name:
+              endAt:
+                description: EndAt is the end time of the booking
                 type: string
-                description: Name of the resource to book
-              start_at:
-                type: string
-                description: Start time of the booking
-              end_at:
-                type: string
-                description: End time of the booking
-              user_id:
-                type: string
-                description: User ID making the booking
               notifications:
-                type: array
+                description: Notifications is a list of notification configurations
                 items:
-                  type: object
                   properties:
-                    recipient:
-                      type: string
-                      description: Recipient of the notification
-                    type:
-                      type: string
-                      description: Type of notification
-                  required:
-                  - recipient
-                  - type
-          status:
-            type: object
-            properties:
-              notification_sent:
-                type: boolean
-                description: Whether notification was sent
-              status:
+                    email:
+                      description: Email notification configuration
+                      properties:
+                        to:
+                          description: To is the email address to send notifications to
+                          type: string
+                      type: object
+                    slack:
+                      description: Slack notification configuration
+                      properties:
+                        channel:
+                          description: Channel is the Slack channel to send notifications to
+                          type: string
+                        webhook:
+                          description: Webhook is the Slack webhook URL
+                          type: string
+                      type: object
+                  type: object
+                type: array
+              resourceName:
+                description: ResourceName is the name of the resource to book
                 type: string
-                description: Current status of the booking
-    additionalPrinterColumns:
-    - name: Resource
-      type: string
-      jsonPath: .spec.resource_name
-    - name: Start Time
-      type: string
-      jsonPath: .spec.start_at
-    - name: End Time
-      type: string
-      jsonPath: .spec.end_at
-    - name: User
-      type: string
-      jsonPath: .spec.user_id
-    - name: Status
-      type: string
-      jsonPath: .status.status
-    - name: Age
-      type: date
-      jsonPath: .metadata.creationTimestamp
-
+              startAt:
+                description: StartAt is the start time of the booking
+                type: string
+              userID:
+                description: UserID is the ID of the user making the booking
+                type: string
+            required:
+            - endAt
+            - resourceName
+            - startAt
+            - userID
+            type: object
+          status:
+            description: BookingStatus defines the observed state of Booking
+            properties:
+              notificationSent:
+                description: NotificationSent indicates whether notifications have been sent
+                type: boolean
+              status:
+                description: Status is the current status of the booking
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   name: bookingschedulers.manager.kotaico.de
-  labels:
-    {{- include "resource-booking-operator.labels" . | nindent 4 }}
 spec:
   group: manager.kotaico.de
   names:
@@ -260,48 +95,184 @@ spec:
     listKind: BookingSchedulerList
     plural: bookingschedulers
     singular: bookingscheduler
-    shortNames:
-    - sched
   scope: Namespaced
   versions:
   - name: v1
-    served: true
-    storage: true
     schema:
       openAPIV3Schema:
-        type: object
+        description: BookingScheduler is the Schema for the bookingschedulers API
         properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
           spec:
-            type: object
+            description: BookingSchedulerSpec defines the desired state of BookingScheduler
             properties:
-              schedule:
+              cronExpression:
+                description: CronExpression is the cron expression for scheduling
                 type: string
-                description: Cron schedule for the scheduler
-              template:
-                type: object
-                description: Template for creating bookings
+              endTime:
+                description: EndTime is the end time for the scheduler
+                type: string
+              resourceName:
+                description: ResourceName is the name of the resource to schedule
+                type: string
+              startTime:
+                description: StartTime is the start time for the scheduler
+                type: string
+              userID:
+                description: UserID is the ID of the user for the scheduler
+                type: string
+            required:
+            - cronExpression
+            - resourceName
+            - userID
+            type: object
           status:
-            type: object
+            description: BookingSchedulerStatus defines the observed state of BookingScheduler
             properties:
-              lastRun:
-                type: string
+              lastRunTime:
+                description: LastRunTime is the last time the scheduler ran
                 format: date-time
-                description: Last time the scheduler ran
-              nextRun:
                 type: string
+              nextRunTime:
+                description: NextRunTime is the next time the scheduler will run
                 format: date-time
-                description: Next scheduled run
-    additionalPrinterColumns:
-    - name: Schedule
-      type: string
-      jsonPath: .spec.schedule
-    - name: Last Run
-      type: string
-      jsonPath: .status.lastRun
-    - name: Next Run
-      type: string
-      jsonPath: .status.nextRun
-    - name: Age
-      type: date
-      jsonPath: .metadata.creationTimestamp
-{{- end }} 
+                type: string
+              status:
+                description: Status is the current status of the scheduler
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: resources.manager.kotaico.de
+spec:
+  group: manager.kotaico.de
+  names:
+    kind: Resource
+    listKind: ResourceList
+    plural: resources
+    singular: resource
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: Resource is the Schema for the resources API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ResourceSpec defines the desired state of Resource
+            properties:
+              bookedBy:
+                description: BookedBy is the ID of the user who has booked this resource
+                type: string
+              bookedUntil:
+                description: BookedUntil is the time until which this resource is booked
+                type: string
+              tag:
+                description: Tag is the tag used to identify this resource
+                type: string
+              type:
+                description: Type is the type of resource (e.g., ec2, rds)
+                type: string
+            required:
+            - tag
+            - type
+            type: object
+          status:
+            description: ResourceStatus defines the observed state of Resource
+            properties:
+              instances:
+                description: Instances is the number of available instances
+                type: integer
+              lockedBy:
+                description: LockedBy is the ID of the user who has locked this resource
+                type: string
+              lockedUntil:
+                description: LockedUntil is the time until which this resource is locked
+                format: date-time
+                type: string
+              running:
+                description: Running is the number of running instances
+                type: integer
+              status:
+                description: Status is the current status of the resource
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: resourcemonitors.manager.kotaico.de
+spec:
+  group: manager.kotaico.de
+  names:
+    kind: ResourceMonitor
+    listKind: ResourceMonitorList
+    plural: resourcemonitors
+    singular: resourcemonitor
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: ResourceMonitor is the Schema for the resourcemonitors API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ResourceMonitorSpec defines the desired state of ResourceMonitor
+            properties:
+              type:
+                description: Type is the type of resource to monitor (e.g., ec2, rds)
+                type: string
+            required:
+            - type
+            type: object
+          status:
+            description: ResourceMonitorStatus defines the observed state of ResourceMonitor
+            properties:
+              lastSyncTime:
+                description: LastSyncTime is the last time the monitor synced
+                format: date-time
+                type: string
+              status:
+                description: Status is the current status of the monitor
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {} 

@@ -1,95 +1,36 @@
-{{- if .Values.operator.rbac.create }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "resource-booking-operator.fullname" . }}
-  labels:
-    {{- include "resource-booking-operator.labels" . | nindent 4 }}
+  name: resource-booking-operator
 rules:
-# Custom resource permissions
-- apiGroups:
-  - manager.kotaico.de
-  resources:
-  - bookings
-  - bookingschedulers
-  - resourcemonitors
-  - resources
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - manager.kotaico.de
-  resources:
-  - bookings/finalizers
-  - bookingschedulers/finalizers
-  - resourcemonitors/finalizers
-  - resources/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - manager.kotaico.de
-  resources:
-  - bookings/status
-  - bookingschedulers/status
-  - resourcemonitors/status
-  - resources/status
-  verbs:
-  - get
-  - patch
-  - update
-# Core Kubernetes permissions
-- apiGroups:
-  - ""
-  resources:
-  - configmaps
-  - events
-  - secrets
-  - services
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - apps
-  resources:
-  - deployments
-  - statefulsets
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - batch
-  resources:
-  - cronjobs
-  - jobs
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-# Event permissions
-- apiGroups:
-  - events.k8s.io
-  resources:
-  - events
-  verbs:
-  - create
-  - patch
-{{- end }} 
+  # Your API group: allow full reconcile verbs on all controlled resources
+  - apiGroups: ["manager.kotaico.de"]
+    resources:
+      - resources
+      - resources/status
+      - resources/finalizers
+      - resourcemonitors
+      - resourcemonitors/status
+      - resourcemonitors/finalizers
+      - bookings
+      - bookings/status
+      - bookings/finalizers
+      - bookingschedulers
+      - bookingschedulers/status
+      - bookingschedulers/finalizers
+    verbs: ["get","list","watch","create","update","patch","delete"]
+
+  # Events are handy for debugging and status
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create","patch","update","get","list","watch"]
+
+  # Leader election (controller-runtime uses Leases)
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get","list","watch","create","update","patch","delete"]
+
+  # (Optional) if you store state in ConfigMaps
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get","list","watch","create","update","patch","delete"] 

@@ -1,16 +1,12 @@
-{{- if .Values.operator.clusterRoleBinding.create }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ include "resource-booking-operator.fullname" . }}
-  labels:
-    {{- include "resource-booking-operator.labels" . | nindent 4 }}
+  name: resource-booking-operator
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ include "resource-booking-operator.fullname" . }}
+  name: resource-booking-operator
 subjects:
-- kind: ServiceAccount
-  name: {{ include "resource-booking-operator.serviceAccountName" . }}
-  namespace: {{ .Release.Namespace }}
-{{- end }} 
+  - kind: ServiceAccount
+    name: resource-booking-operator
+    namespace: {{ .Release.Namespace }} 

@@ -5,27 +5,25 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "resource-booking-operator.labels" . | nindent 4 }}
-    control-plane: controller-manager
-    app.kubernetes.io/component: manager
 spec:
+  replicas: {{ .Values.operator.replicaCount }}
   selector:
     matchLabels:
       {{- include "resource-booking-operator.selectorLabels" . | nindent 6 }}
-      control-plane: controller-manager
-  replicas: {{ .Values.operator.replicas }}
   template:
     metadata:
-      annotations:
-        kubectl.kubernetes.io/default-container: manager
       labels:
         {{- include "resource-booking-operator.selectorLabels" . | nindent 8 }}
-        control-plane: controller-manager
+      {{- with .Values.operator.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     spec:
+      serviceAccountName: resource-booking-operator
       {{- if .Values.operator.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml .Values.operator.imagePullSecrets | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "resource-booking-operator.serviceAccountName" . }}
       {{- with .Values.operator.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -38,50 +36,43 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.operator.securityContext }}
+      {{- if .Values.operator.podSecurityContext }}
       securityContext:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.operator.extraVolumes }}
-      volumes:
-        {{- toYaml . | nindent 8 }}
+        {{- toYaml .Values.operator.podSecurityContext | nindent 8 }}
       {{- end }}
       containers:
-      - name: manager
-        image: "{{ .Values.operator.image.repository }}:{{ .Values.operator.image.tag }}"
-        imagePullPolicy: {{ .Values.operator.image.pullPolicy }}
-        command:
-        - /manager
-        args:
-        {{- if .Values.operator.leaderElection.enabled }}
-        - --leader-elect
-        {{- end }}
-        {{- if .Values.operator.metrics.enabled }}
-        - --metrics-bind-address=:{{ .Values.operator.metrics.port }}
-        {{- end }}
-        {{- if .Values.operator.healthProbe.enabled }}
-        - --health-probe-bind-address=:{{ .Values.operator.healthProbe.port }}
-        {{- end }}
-        {{- with .Values.operator.env }}
-        env:
-          {{- toYaml . | nindent 10 }}
-        {{- end }}
-        {{- with .Values.operator.containerSecurityContext }}
-        securityContext:
-          {{- toYaml . | nindent 10 }}
-        {{- end }}
-        {{- if .Values.operator.livenessProbe.enabled }}
-        livenessProbe:
-          {{- toYaml .Values.operator.livenessProbe | nindent 10 }}
-        {{- end }}
-        {{- if .Values.operator.readinessProbe.enabled }}
-        readinessProbe:
-          {{- toYaml .Values.operator.readinessProbe | nindent 10 }}
-        {{- end }}
-        resources:
-          {{- toYaml .Values.operator.resources | nindent 10 }}
-        {{- with .Values.operator.extraVolumeMounts }}
-        volumeMounts:
-          {{- toYaml . | nindent 10 }}
-        {{- end }}
-      terminationGracePeriodSeconds: 10 
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.operator.image.repository }}:{{ .Values.operator.image.tag }}"
+          imagePullPolicy: {{ .Values.operator.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: https
+              containerPort: 9443
+              protocol: TCP
+            - name: health
+              containerPort: 8081
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: health
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.operator.resources | nindent 12 }}
+          {{- with .Values.operator.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.operator.securityContext }}
+          securityContext:
+            {{- toYaml .Values.operator.securityContext | nindent 12 }}
+          {{- end }} 
