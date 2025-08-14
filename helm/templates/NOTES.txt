@@ -1,0 +1,25 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+1. Check the operator status:
+   kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "resource-booking-operator.name" . }}"
+
+2. Check the custom resources:
+   kubectl get resources --namespace {{ .Release.Namespace }}
+   kubectl get bookings --namespace {{ .Release.Namespace }}
+   kubectl get resourcemonitors --namespace {{ .Release.Namespace }}
+   kubectl get bookingschedulers --namespace {{ .Release.Namespace }}
+
+3. View operator logs:
+   kubectl logs --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "resource-booking-operator.name" . }}"
+
+4. Check the service account and RBAC:
+   kubectl get serviceaccount resource-booking-operator --namespace {{ .Release.Namespace }}
+   kubectl get clusterrole resource-booking-operator
+   kubectl get clusterrolebinding resource-booking-operator 

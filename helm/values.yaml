@@ -1,0 +1,64 @@
+# Default values for resource-booking-operator.
+# This is a YAML-formatted file.
+
+operator:
+  # Number of replicas for the operator deployment
+  replicaCount: 1
+
+  # Image configuration
+  image:
+    repository: kotaicode/resource-booking-operator
+    tag: "scheduler-5"
+    pullPolicy: IfNotPresent
+
+  # Environment variables
+  env:
+    - name: NAMESPACE
+      value: "default"
+    - name: AWS_REGION
+      value: "eu-central-1"
+    - name: AWS_DEFAULT_REGION
+      value: "eu-central-1"
+    - name: LOG_LEVEL
+      value: "info"
+
+  # Resource limits and requests
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 250m
+      memory: 256Mi
+
+  # Pod security context
+  podSecurityContext:
+    fsGroup: 1000
+    runAsNonRoot: true
+    runAsUser: 1000
+
+  # Container security context
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 1000
+
+  # Node selector
+  nodeSelector: {}
+
+  # Tolerations
+  tolerations: []
+
+  # Affinity
+  affinity: {}
+
+  # Pod annotations
+  podAnnotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::163217415796:role/ResourceBookingOperatorRole
+
+  # Image pull secrets
+  imagePullSecrets: [] 

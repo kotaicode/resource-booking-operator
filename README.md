@@ -67,7 +67,7 @@ metadata:
     app.kubernetes.io/created-by: resource-booking-operator
   name: analytics-jan01
 spec:
-  resource_name: analytics
+  resource_name: ec2.analytics
   start_at: 2023-01-01T20:00:00Z
   end_at: 2023-01-01T23:50:00Z
   user_id: cd39ad8bc3
@@ -78,6 +78,33 @@ spec:
 kubectl apply -f manager_v1_booking.yaml
 ```
 
+### Create a booking scheduler
+BookingSchedulers automate the creation of bookings. If we want to have a booking be created on a given interval or time of the day — we can use a scheduler to do that for us.
+The scheduler expects a cron expression, duration, and a booking template to scaffold the created bookings from.
+
+```yaml
+apiVersion: manager.kotaico.de/v1
+kind: BookingScheduler
+metadata:
+  labels:
+    app.kubernetes.io/name: bookingscheduler
+    app.kubernetes.io/instance: bookingscheduler-sample
+    app.kubernetes.io/part-of: resource-booking-operator
+    app.kuberentes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: resource-booking-operator
+  name: bookingscheduler-sample
+spec:
+  schedule: "0 * * * *"
+  duration: 20
+  bookingTemplate:
+    resource_name: ec2.analytics
+    user_id: cd39ad8bc3
+```
+
+```yaml
+kubectl apply -f manager_v1_bookingscheduler.yaml
+```
+
 ### Watch for changes
 Once you create a booking, you can track their effect with:
 ```
@@ -86,7 +113,7 @@ kubectl get resources,bookings
 Once the local cluster time hits the start time of the booking, you'll see the instances from this resource spinning up, and the booking status moving to being in progress. When the end time comes — the resource instances will be shut down and the booking will be marked as finished.
 ```
 NAME                                   LOCKED BY   LOCKED UNTIL   INSTANCES   RUNNING   STATUS
-analytics                                                         2           0         STOPPED
+ec2.analytics                                                         2           0         STOPPED
 
 NAME                                      START                  END                    STATUS
 analytics-jan01                           2023-01-01T20:00:00Z   2023-01-01T23:50:00Z   FINISHED
@@ -112,6 +139,3 @@ make test
 
 ## Development
 Kubebuilder is a hard development dependency of the project, so one of the best guides to extending and playing with this codebase is the [Kubebuilder book](https://book.kubebuilder.io/).
-
-## Roadmap
-- Recurring bookings

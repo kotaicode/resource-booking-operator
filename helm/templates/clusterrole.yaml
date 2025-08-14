@@ -1,0 +1,36 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: resource-booking-operator
+rules:
+  # Your API group: allow full reconcile verbs on all controlled resources
+  - apiGroups: ["manager.kotaico.de"]
+    resources:
+      - resources
+      - resources/status
+      - resources/finalizers
+      - resourcemonitors
+      - resourcemonitors/status
+      - resourcemonitors/finalizers
+      - bookings
+      - bookings/status
+      - bookings/finalizers
+      - bookingschedulers
+      - bookingschedulers/status
+      - bookingschedulers/finalizers
+    verbs: ["get","list","watch","create","update","patch","delete"]
+
+  # Events are handy for debugging and status
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create","patch","update","get","list","watch"]
+
+  # Leader election (controller-runtime uses Leases)
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get","list","watch","create","update","patch","delete"]
+
+  # (Optional) if you store state in ConfigMaps
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get","list","watch","create","update","patch","delete"] 
