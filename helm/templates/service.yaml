@@ -4,7 +4,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "resource-booking-operator.fullname" . }}-metrics
-  namespace: {{ .Values.operator.namespace }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "resource-booking-operator.labels" . | nindent 4 }}
     app.kubernetes.io/component: metrics
@@ -26,7 +26,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "resource-booking-operator.fullname" . }}-health
-  namespace: {{ .Values.operator.namespace }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "resource-booking-operator.labels" . | nindent 4 }}
     app.kubernetes.io/component: health
@@ -48,7 +48,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "resource-booking-operator.fullname" . }}-webhook
-  namespace: {{ .Values.operator.namespace }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "resource-booking-operator.labels" . | nindent 4 }}
     app.kubernetes.io/component: webhook

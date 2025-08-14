@@ -191,46 +191,57 @@ spec:
           spec:
             type: object
             properties:
-              resourceName:
+              resource_name:
                 type: string
                 description: Name of the resource to book
-              startTime:
+              start_at:
                 type: string
-                format: date-time
                 description: Start time of the booking
-              endTime:
+              end_at:
                 type: string
-                format: date-time
                 description: End time of the booking
-              user:
+              user_id:
                 type: string
-                description: User making the booking
+                description: User ID making the booking
+              notifications:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    recipient:
+                      type: string
+                      description: Recipient of the notification
+                    type:
+                      type: string
+                      description: Type of notification
+                  required:
+                  - recipient
+                  - type
           status:
             type: object
             properties:
-              phase:
+              notification_sent:
+                type: boolean
+                description: Whether notification was sent
+              status:
                 type: string
-                description: Current phase of the booking
-              lastUpdated:
-                type: string
-                format: date-time
-                description: Last time the booking was updated
+                description: Current status of the booking
     additionalPrinterColumns:
     - name: Resource
       type: string
-      jsonPath: .spec.resourceName
+      jsonPath: .spec.resource_name
     - name: Start Time
       type: string
-      jsonPath: .spec.startTime
+      jsonPath: .spec.start_at
     - name: End Time
       type: string
-      jsonPath: .spec.endTime
+      jsonPath: .spec.end_at
     - name: User
       type: string
-      jsonPath: .spec.user
-    - name: Phase
+      jsonPath: .spec.user_id
+    - name: Status
       type: string
-      jsonPath: .status.phase
+      jsonPath: .status.status
     - name: Age
       type: date
       jsonPath: .metadata.creationTimestamp

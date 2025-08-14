@@ -12,5 +12,5 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: {{ include "resource-booking-operator.serviceAccountName" . }}
-  namespace: {{ .Values.operator.namespace }}
+  namespace: {{ .Release.Namespace }}
 {{- end }} 

@@ -3,7 +3,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ include "resource-booking-operator.fullname" . }}
-  namespace: {{ .Values.operator.namespace }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "resource-booking-operator.labels" . | nindent 4 }}
 spec:

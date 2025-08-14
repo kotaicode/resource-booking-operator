@@ -3,7 +3,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: {{ include "resource-booking-operator.fullname" . }}
-  namespace: {{ .Values.operator.namespace }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "resource-booking-operator.labels" . | nindent 4 }}
 spec:
