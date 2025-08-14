@@ -58,7 +58,7 @@ operator:
 
   # Pod annotations
   podAnnotations:
-    eks.amazonaws.com/role-arn: "arn:aws:iam::163217415796:role/ResourceBookingOperatorRole"
+    eks.amazonaws.com/role-arn: "arn:aws:iam::AWS_ACCOUNT_ID:role/AWS_ROLE_NAME"
 
   # Image pull secrets
   imagePullSecrets: [] 
