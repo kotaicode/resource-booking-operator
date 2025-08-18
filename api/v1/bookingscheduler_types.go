@@ -22,9 +22,14 @@ import (
 
 // BookingSchedulerSpec defines the desired state of BookingScheduler
 type BookingSchedulerSpec struct {
-	Schedule        string      `json:"schedule,omitempty"`
-	Duration        int         `json:"duration,omitempty"`
-	BookingTemplate BookingSpec `json:"bookingTemplate,omitempty"`
+	EndAt         string         `json:"end_at,omitempty"`
+	EndTime       string         `json:"end_time,omitempty"`
+	Notifications []Notification `json:"notifications,omitempty"`
+	ResourceName  string         `json:"resource_name,omitempty"`
+	Schedule      string         `json:"schedule,omitempty"`
+	StartAt       string         `json:"start_at,omitempty"`
+	StartTime     string         `json:"start_time,omitempty"`
+	UserID        string         `json:"user_id,omitempty"`
 }
 
 // BookingSchedulerStatus defines the observed state of BookingScheduler
@@ -35,8 +40,8 @@ type BookingSchedulerStatus struct {
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 //+kubebuilder:printcolumn:JSONPath=".spec.schedule",name="SCHEDULE",type="string"
-//+kubebuilder:printcolumn:JSONPath=".spec.duration",name="DURATION",type="integer"
-//+kubebuilder:printcolumn:JSONPath=".status.next",name="NEXT",type="string"
+//+kubebuilder:printcolumn:JSONPath=".spec.start_time",name="START TIME",type="string"
+//+kubebuilder:printcolumn:JSONPath=".spec.end_time",name="END TIME",type="string"
 
 // BookingScheduler is the Schema for the bookingschedulers API
 type BookingScheduler struct {

@@ -77,6 +77,24 @@ func (r *BookingReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	} else if bookEnd.Before(time.Now()) {
 		booking.Status.Status = managerv1.BookingFinished
 		updateResource(r, ctx, &resources, &booking)
+	} else if bookStart.After(time.Now()) {
+		// Check if we're within a time-based scheduling window (e.g., start_time: "10:00", end_time: "13:00")
+		// and the current time is within that window
+		now := time.Now()
+
+		// Parse the time components from the booking start and end
+		startTime := bookStart.Sub(now)
+		endTime := bookEnd.Sub(now)
+
+		// If we're within the daily time window, start the booking immediately
+		if startTime <= 0 && endTime > 0 {
+			booking.Status.Status = managerv1.BookingInProgress
+			// Update the start time to now since we're starting immediately
+			booking.Spec.StartAt = now.Format(time.RFC3339)
+			updateResource(r, ctx, &resources, &booking)
+		} else {
+			booking.Status.Status = managerv1.BookingScheduled
+		}
 	} else {
 		booking.Status.Status = managerv1.BookingScheduled
 	}
