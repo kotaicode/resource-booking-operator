@@ -66,127 +66,51 @@ The chart installs the following CRDs:
 - **Booking**: Represents a resource booking with start/end times
 - **BookingScheduler**: Automatically creates bookings on a schedule
 
-## Usage Examples
+## Examples
 
-### Create an EC2 Resource
-```yaml
-apiVersion: manager.kotaico.de/v1
-kind: Resource
-metadata:
-  name: my-ec2-instance
-spec:
-  type: ec2
-  name: production-server
-  region: eu-central-1
-  tags:
-    Environment: production
-    Team: devops
-```
+### BookingScheduler with Time-based Scheduling
 
-### Create a Resource Monitor
-```yaml
-apiVersion: manager.kotaico.de/v1
-kind: ResourceMonitor
-metadata:
-  name: ec2-monitor
-spec:
-  type: ec2
-  schedule: "*/5 * * * *"  # Every 5 minutes
-  filters:
-    Environment: production
-```
-
-### Create a Booking
-```yaml
-apiVersion: manager.kotaico.de/v1
-kind: Booking
-metadata:
-  name: maintenance-window
-spec:
-  resourceName: my-ec2-instance
-  startTime: "2024-01-15T02:00:00Z"
-  endTime: "2024-01-15T04:00:00Z"
-  user: "maintenance-team"
-```
-
-### Create a Booking Scheduler
 ```yaml
 apiVersion: manager.kotaico.de/v1
 kind: BookingScheduler
 metadata:
   name: daily-backup
 spec:
-  schedule: "0 2 * * *"  # Daily at 2 AM
-  template:
-    resourceName: my-ec2-instance
-    startTime: "2024-01-15T02:00:00Z"
-    endTime: "2024-01-15T03:00:00Z"
-    user: "backup-system"
+  end_time: "13:00"
+  resource_name: resource-booking-operator
+  schedule: "00 06 * * 1-5"
+  start_time: "10:00"
+  user_id: tom
 ```
 
-## Monitoring
+**Smart Scheduling Behavior:**
+- **Before start time**: Resource starts at the scheduled start time
+- **Within time window**: Resource starts immediately (e.g., if it's 11:30 AM and window is 10:00 AM - 1:00 PM)
+- **After end time**: Resource starts tomorrow at the scheduled start time
+- **Automatic stop**: Resource automatically stops when end time is reached
 
-### Metrics
-If metrics are enabled, you can access them via:
-```bash
-kubectl port-forward -n system svc/resource-booking-operator-metrics 8080:8080
-curl http://localhost:8080/metrics
+### BookingScheduler with Timestamp-based Scheduling
+
+```yaml
+apiVersion: manager.kotaico.de/v1
+kind: BookingScheduler
+metadata:
+  name: specific-time-booking
+spec:
+  end_at: "2025-08-18T13:00:00+02:00"
+  resource_name: resource-booking-operator
+  schedule: "00 06 * * 1-5"
+  start_at: "2025-08-18T10:00:00+02:00"
+  user_id: tom
 ```
 
-### Health Checks
-Health checks are available at:
-```bash
-kubectl port-forward -n system svc/resource-booking-operator-health 8081:8081
-curl http://localhost:8081/healthz
-curl http://localhost:8081/readyz
+**Timestamp-based Behavior:**
+- Uses exact timestamps for start and end times
+- Perfect for one-time or specific date scheduling
+- Resources start and stop at the exact specified times
+
+## Usage Examples
+
+### Create an EC2 Resource
 ```
-
-## Upgrading
-
-```bash
-helm upgrade resource-booking-operator ./helm
 ```
-
-## Uninstalling
-
-```bash
-helm uninstall resource-booking-operator
-```
-
-**Note**: CRDs are not automatically removed. To remove them:
-```bash
-kubectl delete crd resources.manager.kotaico.de
-kubectl delete crd resourcemonitors.manager.kotaico.de
-kubectl delete crd bookings.manager.kotaico.de
-kubectl delete crd bookingschedulers.manager.kotaico.de
-```
-
-## Troubleshooting
-
-### Check operator status
-```bash
-kubectl get pods -n system -l app.kubernetes.io/name=resource-booking-operator
-kubectl logs -n system -l app.kubernetes.io/name=resource-booking-operator
-```
-
-### Check CRDs
-```bash
-kubectl get crd | grep manager.kotaico.de
-```
-
-### Check operator logs
-```bash
-kubectl logs -n system deployment/resource-booking-operator
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test the chart
-5. Submit a pull request
-
-## License
-
-This chart is licensed under the Apache License 2.0. 

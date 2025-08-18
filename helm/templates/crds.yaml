@@ -95,11 +95,11 @@ spec:
     - jsonPath: .spec.schedule
       name: SCHEDULE
       type: string
-    - jsonPath: .spec.duration
-      name: DURATION
-      type: integer
-    - jsonPath: .status.next
-      name: NEXT
+    - jsonPath: .spec.start_time
+      name: START TIME
+      type: string
+    - jsonPath: .spec.end_time
+      name: END TIME
       type: string
     schema:
       openAPIV3Schema:
@@ -116,38 +116,31 @@ spec:
           spec:
             description: BookingSchedulerSpec defines the desired state of BookingScheduler
             properties:
-              bookingTemplate:
-                description: BookingSpec defines the desired state of Booking
-                properties:
-                  end_at:
-                    type: string
-                  notifications:
-                    items:
-                      properties:
-                        recipient:
-                          type: string
-                        type:
-                          type: string
-                      required:
-                      - recipient
-                      - type
-                      type: object
-                    type: array
-                  resource_name:
-                    type: string
-                  start_at:
-                    type: string
-                  user_id:
-                    type: string
-                required:
-                - end_at
-                - resource_name
-                - start_at
-                - user_id
-                type: object
-              duration:
-                type: integer
+              end_at:
+                type: string
+              end_time:
+                type: string
+              notifications:
+                items:
+                  properties:
+                    recipient:
+                      type: string
+                    type:
+                      type: string
+                  required:
+                  - recipient
+                  - type
+                  type: object
+                type: array
+              resource_name:
+                type: string
               schedule:
+                type: string
+              start_at:
+                type: string
+              start_time:
+                type: string
+              user_id:
                 type: string
             type: object
           status:
