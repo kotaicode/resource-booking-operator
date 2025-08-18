@@ -62,7 +62,7 @@ func (r *BookingSchedulerReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		return ctrl.Result{}, err
 	}
 
-	now := time.Now()
+	now := time.Now().UTC()
 	log.Info("Processing scheduler", "schedule", bookingScheduler.Spec.Schedule, "currentTime", now.Format("15:04"), "statusNext", bookingScheduler.Status.Next)
 
 	nextSched := schedule.Next(now)
@@ -114,7 +114,7 @@ func (r *BookingSchedulerReconciler) Reconcile(ctx context.Context, req ctrl.Req
 
 // setBooking creates a booking based on the scheduler's configuration
 func setBooking(bookingScheduler managerv1.BookingScheduler, booking managerv1.Booking) managerv1.Booking {
-	now := time.Now()
+	now := time.Now().UTC()
 
 	// Check if we should use time-based scheduling (start_time/end_time) or timestamp-based (start_at/end_at)
 	if bookingScheduler.Spec.StartTime != "" && bookingScheduler.Spec.EndTime != "" {
@@ -132,7 +132,7 @@ func setBooking(bookingScheduler managerv1.BookingScheduler, booking managerv1.B
 		}
 
 		// Create the actual start and end times for today
-		today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+		today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
 		actualStartTime := today.Add(time.Duration(startTime.Hour())*time.Hour + time.Duration(startTime.Minute())*time.Minute)
 		actualEndTime := today.Add(time.Duration(endTime.Hour())*time.Hour + time.Duration(endTime.Minute())*time.Minute)
 
