@@ -134,6 +134,7 @@ ENVTEST ?= $(LOCALBIN)/setup-envtest
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v3.8.7
 CONTROLLER_TOOLS_VERSION ?= v0.9.2
+ENVTEST_VERSION ?= v0.0.0-20230216140739-c98506dc3b8e 
 
 KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
 .PHONY: kustomize
@@ -149,21 +150,21 @@ $(CONTROLLER_GEN): $(LOCALBIN)
 .PHONY: envtest
 envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST): $(LOCALBIN)
-	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@$(ENVTEST_VERSION)
 
 ## Experiments
 .PHONY: list-instances
 list-instances:
-	aws ec2 describe-instances --query "Reservations[].Instances[].{Instance:InstanceId,Managed:Tags[?Key=='resource-booking/managed']|[0].Value,Resource:Tags[?Key=='resource-booking/application']|[0].Value}" --output table
+	aws ec2 describe-instances --query "Reservations[].Instances[].{Instance:InstanceId,Managed:Tags[?Key=='resource-booking-managed']|[0].Value,Resource:Tags[?Key=='resource-booking-application']|[0].Value}" --output table
 
 .PHONY: tag-instances
 tag-instances:
 	aws ec2 create-tags \
 		--resources $(instances) \
-		--tags Key=resource-booking/application,Value=$(tag)
+		--tags Key=resource-booking-application,Value=$(tag)
 
 .PHONY: mark-managed
 mark-managed:
 	aws ec2 create-tags \
 		--resources $(instances) \
-		--tags Key=resource-booking/managed,Value=$(enable)
+		--tags Key=resource-booking-managed,Value=$(enable)
