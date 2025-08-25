@@ -184,8 +184,8 @@ func getUniqueRDSTags() (map[string]bool, error) {
 }
 
 // lock sets locking tags to the resource instances. Tags are:
-// resource-booking/locked-by    - The identifier of the booking that owns the instance at this moment
-// resource-booking/locked-until - Date time until the instance is available again. The endAt of the booking.
+// resource-booking-locked-by    - The identifier of the booking that owns the instance at this moment
+// resource-booking-locked-until - Date time until the instance is available again. The endAt of the booking.
 func (r *RDSResource) lockRDS(uid string, endAt string, resourceNames []*string) error {
 	for _, resourceName := range resourceNames {
 		_, err := rdsClient.AddTagsToResource(&rds.AddTagsToResourceInput{
