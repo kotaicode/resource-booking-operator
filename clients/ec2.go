@@ -27,8 +27,8 @@ const (
 )
 
 var (
-	lockedByTag    string = "resource-booking/locked-by"
-	lockedUntilTag string = "resource-booking/locked-until"
+	lockedByTag    string = "resource-booking-locked-by"
+	lockedUntilTag string = "resource-booking-locked-until"
 )
 
 type EC2Monitor struct {
@@ -165,8 +165,8 @@ func (r *EC2Resource) canManage(uid string, instanceTags map[string]string) (boo
 }
 
 // lock sets locking tags to the resource instances. Tags are:
-// resource-booking/locked-by    - The identifier of the booking that owns the instance at this moment
-// resource-booking/locked-until - Date time until the instance is available again. The endAt of the booking.
+// resource-booking-locked-by    - The identifier of the booking that owns the instance at this moment
+// resource-booking-locked-until - Date time until the instance is available again. The endAt of the booking.
 func (r *EC2Resource) lock(uid string, endAt string, instanceIDs []*string) error {
 	_, err := ec2Client.CreateTags(&ec2.CreateTagsInput{
 		Resources: instanceIDs,
