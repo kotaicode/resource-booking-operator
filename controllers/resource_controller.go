@@ -20,13 +20,12 @@ import (
 	"context"
 	"time"
 
+	managerv1 "github.com/kotaicode/resource-booking-operator/api/v1"
+	"github.com/kotaicode/resource-booking-operator/clients"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-
-	managerv1 "github.com/kotaicode/resource-booking-operator/api/v1"
-	"github.com/kotaicode/resource-booking-operator/clients"
 )
 
 // ResourceReconciler reconciles a Resource object
