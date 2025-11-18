@@ -92,7 +92,7 @@ func (r *BookingSchedulerReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		return ctrl.Result{}, err
 	}
 
-	return ctrl.Result{RequeueAfter: time.Duration(nextInMin)}, nil
+	return ctrl.Result{RequeueAfter: nextInMin}, nil
 }
 
 // setBooking grabs the necessary information from the booking scheduler and sets it to the booking
