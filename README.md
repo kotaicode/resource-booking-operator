@@ -90,7 +90,7 @@ metadata:
     app.kubernetes.io/name: bookingscheduler
     app.kubernetes.io/instance: bookingscheduler-sample
     app.kubernetes.io/part-of: resource-booking-operator
-    app.kuberentes.io/managed-by: kustomize
+    app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: resource-booking-operator
   name: bookingscheduler-sample
 spec:
