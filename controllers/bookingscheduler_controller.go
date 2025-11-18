@@ -57,7 +57,7 @@ func (r *BookingSchedulerReconciler) Reconcile(ctx context.Context, req ctrl.Req
 
 	schedule, err := cron.ParseStandard(bookingScheduler.Spec.Schedule)
 	if err != nil {
-		log.Error(err, "Error parsing schedule")
+		log.Error(err, "Error parsing schedule", "schedule", bookingScheduler.Spec.Schedule)
 		return ctrl.Result{}, err
 	}
 
