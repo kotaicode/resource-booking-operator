@@ -71,7 +71,7 @@ func (r *BookingSchedulerReconciler) Reconcile(ctx context.Context, req ctrl.Req
 	if bookingScheduler.Status.Next != "" {
 		statusNext, err := time.Parse(time.RFC3339, bookingScheduler.Status.Next)
 		if err != nil {
-			log.Error(err, "Error parsing status.next")
+			log.Error(err, "Error parsing status.next", "value", bookingScheduler.Status.Next)
 			return ctrl.Result{}, err
 		}
 
