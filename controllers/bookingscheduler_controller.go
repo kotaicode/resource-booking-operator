@@ -77,6 +77,7 @@ func (r *BookingSchedulerReconciler) Reconcile(ctx context.Context, req ctrl.Req
 		}
 
 		if statusNext.Equal(now) || statusNext.Before(now) {
+			// NOTE: Slight race condition concerns? Check if the booking already existst by name?
 			if err := r.Create(ctx, &booking); err != nil {
 				log.Error(err, "Error creating booking")
 				return ctrl.Result{}, err
