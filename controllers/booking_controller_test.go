@@ -20,7 +20,7 @@ var _ = Describe("Booking controller", func() {
 
 	const (
 		BookingName         = "test-booking"
-		BookingResourceName = "analytics"
+		BookingResourceName = "ec2.analytics"
 	)
 
 	// Keep the format visible for easier debugging and just increment with an year

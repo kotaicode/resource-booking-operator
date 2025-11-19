@@ -1,0 +1,16 @@
+apiVersion: manager.kotaico.de/v1
+kind: BookingScheduler
+metadata:
+  labels:
+    app.kubernetes.io/name: bookingscheduler
+    app.kubernetes.io/instance: bookingscheduler-sample
+    app.kubernetes.io/part-of: resource-booking-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: resource-booking-operator
+  name: bookingscheduler-sample
+spec:
+  schedule: "0 * * * *"
+  duration: 20
+  bookingTemplate:
+    resource_name: ec2.analytics
+    user_id: cd39ad8bc3
