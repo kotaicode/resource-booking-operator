@@ -15,6 +15,14 @@ import (
 	//+kubebuilder:scaffold:imports
 )
 
+func getBookingNamespace() string {
+	namespace := os.Getenv("NAMESPACE")
+	if namespace == "" {
+		return "default"
+	}
+	return namespace
+}
+
 var _ = Describe("Booking controller", func() {
 	ctx := context.Background()
 
@@ -34,15 +42,12 @@ var _ = Describe("Booking controller", func() {
 		FinishedBookingStart = fmt.Sprintf("%d-01-01T00:00:00Z", time.Now().AddDate(-1, 0, 0).Year())
 		FinishedBookingEnd   = fmt.Sprintf("%d-01-02T00:00:00Z", time.Now().AddDate(-1, 0, 0).Year())
 
-		BookingNamespace = os.Getenv("NAMESPACE")
+		BookingNamespace = getBookingNamespace()
 	)
-
-	if BookingNamespace == "" {
-		BookingNamespace = "default"
-	}
 
 	var bookingSpec managerv1.BookingSpec
 	var booking *managerv1.Booking
+	var resource *managerv1.Resource
 
 	Context("Booking changes", func() {
 		BeforeEach(func() {
@@ -59,14 +64,29 @@ var _ = Describe("Booking controller", func() {
 				},
 				Spec: bookingSpec,
 			}
+
+			// Create the resource that bookings will reference
+			resource = &managerv1.Resource{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      BookingResourceName,
+					Namespace: BookingNamespace,
+				},
+				Spec: managerv1.ResourceSpec{
+					Type: "ec2",
+					Tag:  "analytics",
+				},
+			}
+			Expect(k8sClient.Create(ctx, resource)).Should(Succeed())
 		})
 
 		AfterEach(func() {
-			Expect(k8sClient.Delete(ctx, booking))
+			// Clean up booking and resource
+			Expect(k8sClient.Delete(ctx, booking)).Should(Succeed())
+			Expect(k8sClient.Delete(ctx, resource)).Should(Succeed())
 		})
 
-		It("Should update booking status", func() {
-			By("By creating a new Booking")
+		It("Should update booking status to SCHEDULED for future bookings", func() {
+			By("By creating a new Booking with future dates")
 			booking.Spec.StartAt = ScheduledBookingStart
 			booking.Spec.EndAt = ScheduledBookingEnd
 			Expect(k8sClient.Create(ctx, booking)).Should(Succeed())
@@ -83,7 +103,7 @@ var _ = Describe("Booking controller", func() {
 			Expect(createdBooking.Spec.StartAt).Should(Equal(ScheduledBookingStart))
 			Expect(createdBooking.Spec.EndAt).Should(Equal(ScheduledBookingEnd))
 
-			By("By checking if the booking status is updated")
+			By("By checking if the booking status is updated to SCHEDULED")
 			Eventually(func() (string, error) {
 				err := k8sClient.Get(ctx, resourceLookupKey, createdBooking)
 				if err != nil {
@@ -93,17 +113,12 @@ var _ = Describe("Booking controller", func() {
 			}).Should(Equal(managerv1.BookingScheduled), "should show that the booking status is scheduled")
 		})
 
-		It("Should update booking status", func() {
-			By("By creating a new Booking")
+		It("Should update booking status to IN PROGRESS for current bookings", func() {
+			By("By creating a new Booking with current dates")
 
 			booking.Spec.StartAt = InProgressBookingStart
 			booking.Spec.EndAt = InProgressBookingEnd
 			Expect(k8sClient.Create(ctx, booking)).Should(Succeed())
-
-			err := k8sClient.Update(ctx, booking)
-			if err != nil {
-				return
-			}
 
 			// Check that the spec we passed is matching
 			resourceLookupKey := types.NamespacedName{Name: BookingName, Namespace: BookingNamespace}
@@ -117,29 +132,24 @@ var _ = Describe("Booking controller", func() {
 			Expect(createdBooking.Spec.StartAt).Should(Equal(InProgressBookingStart))
 			Expect(createdBooking.Spec.EndAt).Should(Equal(InProgressBookingEnd))
 
-			By("By checking if the booking status is updated")
+			By("By checking if the booking status is updated to IN PROGRESS")
 			Eventually(func() (string, error) {
 				err := k8sClient.Get(ctx, resourceLookupKey, createdBooking)
 				if err != nil {
 					return "", err
 				}
 				return createdBooking.Status.Status, nil
-			}).Should(Equal(managerv1.BookingInProgress), "should show that the booking status is in progres")
+			}).Should(Equal(managerv1.BookingInProgress), "should show that the booking status is in progress")
 
 			// TODO Check if the resource spec.booked got updated
 		})
 
-		It("Should update booking status", func() {
-			By("By creating a new Booking")
+		It("Should update booking status to FINISHED for past bookings", func() {
+			By("By creating a new Booking with past dates")
 
 			booking.Spec.StartAt = FinishedBookingStart
 			booking.Spec.EndAt = FinishedBookingEnd
 			Expect(k8sClient.Create(ctx, booking)).Should(Succeed())
-
-			err := k8sClient.Update(ctx, booking)
-			if err != nil {
-				return
-			}
 
 			// Check that the spec we passed is matching
 			resourceLookupKey := types.NamespacedName{Name: BookingName, Namespace: BookingNamespace}
@@ -153,7 +163,7 @@ var _ = Describe("Booking controller", func() {
 			Expect(createdBooking.Spec.StartAt).Should(Equal(FinishedBookingStart))
 			Expect(createdBooking.Spec.EndAt).Should(Equal(FinishedBookingEnd))
 
-			By("By checking if the booking status is updated")
+			By("By checking if the booking status is updated to FINISHED")
 			Eventually(func() (string, error) {
 				err := k8sClient.Get(ctx, resourceLookupKey, createdBooking)
 				if err != nil {

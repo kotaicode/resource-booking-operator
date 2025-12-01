@@ -143,7 +143,7 @@ func GetClient() (ClientCache, error) {
 	}
 
 	clientCache.Client = client.NewNamespacedClient(cli, namespace)
-	clientCache.Cache, err = cache.New(config, cache.Options{Namespace: namespace, Scheme: scheme})
+	clientCache.Cache, err = cache.New(config, cache.Options{DefaultNamespaces: map[string]cache.Config{namespace: {}}, Scheme: scheme})
 	if err != nil {
 		return clientCache, err
 	}

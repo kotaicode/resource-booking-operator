@@ -2,90 +2,14 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  creationTimestamp: null
   name: manager-role
 rules:
 - apiGroups:
   - manager.kotaico.de
   resources:
   - bookings
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - manager.kotaico.de
-  resources:
-  - bookings/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - manager.kotaico.de
-  resources:
-  - bookings/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - manager.kotaico.de
-  resources:
   - bookingschedulers
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - manager.kotaico.de
-  resources:
-  - bookingschedulers/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - manager.kotaico.de
-  resources:
-  - bookingschedulers/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - manager.kotaico.de
-  resources:
   - resourcemonitors
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - manager.kotaico.de
-  resources:
-  - resourcemonitors/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - manager.kotaico.de
-  resources:
-  - resourcemonitors/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - manager.kotaico.de
-  resources:
   - resources
   verbs:
   - create
@@ -98,12 +22,18 @@ rules:
 - apiGroups:
   - manager.kotaico.de
   resources:
+  - bookings/finalizers
+  - bookingschedulers/finalizers
+  - resourcemonitors/finalizers
   - resources/finalizers
   verbs:
   - update
 - apiGroups:
   - manager.kotaico.de
   resources:
+  - bookings/status
+  - bookingschedulers/status
+  - resourcemonitors/status
   - resources/status
   verbs:
   - get

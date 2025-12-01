@@ -1,11 +1,13 @@
 package clients
 
 import (
+	"context"
 	"fmt"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/rds"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/rds"
+	"github.com/aws/aws-sdk-go-v2/service/rds/types"
 )
 
 const StatusAvailable = "available"
@@ -19,15 +21,22 @@ type RDSMonitor struct {
 }
 
 type RDSInstanceDetails struct {
-	IDs           []*string
+	IDs           []string
 	Tags          map[string]string
-	ResourceNames []*string
+	ResourceNames []string
 }
 
-var rdsSession *session.Session = session.Must(session.NewSessionWithOptions(session.Options{
-	SharedConfigState: session.SharedConfigEnable,
-}))
-var rdsClient = rds.New(rdsSession)
+var rdsClient *rds.Client
+var rdsCtx = context.Background()
+
+func init() {
+	cfg, err := config.LoadDefaultConfig(rdsCtx)
+	if err != nil {
+		fmt.Printf("unable to load SDK config for RDS: %v\n", err)
+		return
+	}
+	rdsClient = rds.NewFromConfig(cfg)
+}
 
 func (r *RDSResource) Start(startInput ResourceStartInput) error {
 	instances, err := r.getRDSInstanceDetails(r.NameTag)
@@ -40,8 +49,8 @@ func (r *RDSResource) Start(startInput ResourceStartInput) error {
 	}
 
 	for _, dbInstance := range instances.IDs {
-		_, err = rdsClient.StartDBInstance(&rds.StartDBInstanceInput{
-			DBInstanceIdentifier: dbInstance,
+		_, err = rdsClient.StartDBInstance(rdsCtx, &rds.StartDBInstanceInput{
+			DBInstanceIdentifier: &dbInstance,
 		})
 		if err != nil {
 			return err
@@ -66,8 +75,8 @@ func (r *RDSResource) Stop(stopInput ResourceStopInput) error {
 		return err
 	}
 	for _, instance := range instances.IDs {
-		_, err = rdsClient.StopDBInstance(&rds.StopDBInstanceInput{
-			DBInstanceIdentifier: instance,
+		_, err = rdsClient.StopDBInstance(rdsCtx, &rds.StopDBInstanceInput{
+			DBInstanceIdentifier: &instance,
 		})
 		if err != nil {
 			return err
@@ -106,21 +115,21 @@ func (r *RDSResource) Status() (ResourceStatusOutput, error) {
 	return rst, nil
 }
 
-func (r *RDSResource) getRDSInstancesByTag(nameTag string) ([]*rds.DBInstance, error) {
+func (r *RDSResource) getRDSInstancesByTag(nameTag string) ([]types.DBInstance, error) {
 
 	// Retrieve the list of all DB instances
-	instances, err := rdsClient.DescribeDBInstances(nil)
+	instances, err := rdsClient.DescribeDBInstances(rdsCtx, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	// Filter the instances based on the specified tag key and value
-	var filteredInstances []*rds.DBInstance
+	var filteredInstances []types.DBInstance
 	for _, instance := range instances.DBInstances {
 		input := &rds.ListTagsForResourceInput{
 			ResourceName: instance.DBInstanceArn,
 		}
-		result, err := rdsClient.ListTagsForResource(input)
+		result, err := rdsClient.ListTagsForResource(rdsCtx, input)
 		if err != nil {
 			return nil, err
 		}
@@ -149,17 +158,17 @@ func (m *RDSMonitor) GetNewResources(clusterResources map[string]bool) ([]string
 func getUniqueRDSTags() (map[string]bool, error) {
 	tagMap := make(map[string]bool)
 
-	instances, err := rdsClient.DescribeDBInstances(nil)
+	instances, err := rdsClient.DescribeDBInstances(rdsCtx, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var filteredInstances []*rds.DBInstance
+	var filteredInstances []types.DBInstance
 	for _, instance := range instances.DBInstances {
 		input := &rds.ListTagsForResourceInput{
 			ResourceName: instance.DBInstanceArn,
 		}
-		result, err := rdsClient.ListTagsForResource(input)
+		result, err := rdsClient.ListTagsForResource(rdsCtx, input)
 		if err != nil {
 			return nil, err
 		}
@@ -186,11 +195,11 @@ func getUniqueRDSTags() (map[string]bool, error) {
 // lock sets locking tags to the resource instances. Tags are:
 // resource-booking-locked-by    - The identifier of the booking that owns the instance at this moment
 // resource-booking-locked-until - Date time until the instance is available again. The endAt of the booking.
-func (r *RDSResource) lockRDS(uid string, endAt string, resourceNames []*string) error {
+func (r *RDSResource) lockRDS(uid string, endAt string, resourceNames []string) error {
 	for _, resourceName := range resourceNames {
-		_, err := rdsClient.AddTagsToResource(&rds.AddTagsToResourceInput{
-			ResourceName: resourceName,
-			Tags: []*rds.Tag{
+		_, err := rdsClient.AddTagsToResource(rdsCtx, &rds.AddTagsToResourceInput{
+			ResourceName: &resourceName,
+			Tags: []types.Tag{
 				{Key: &lockedByTag, Value: &uid},
 				{Key: &lockedUntilTag, Value: &endAt},
 			},
@@ -205,11 +214,11 @@ func (r *RDSResource) lockRDS(uid string, endAt string, resourceNames []*string)
 }
 
 // unlock removes the locking tags, freeing the resource to other users.
-func (r *RDSResource) unlockRDS(resourceNames []*string) error {
+func (r *RDSResource) unlockRDS(resourceNames []string) error {
 	for _, resourceName := range resourceNames {
-		_, err := rdsClient.RemoveTagsFromResource(&rds.RemoveTagsFromResourceInput{
-			ResourceName: resourceName,
-			TagKeys:      []*string{&lockedByTag, &lockedUntilTag},
+		_, err := rdsClient.RemoveTagsFromResource(rdsCtx, &rds.RemoveTagsFromResourceInput{
+			ResourceName: &resourceName,
+			TagKeys:      []string{lockedByTag, lockedUntilTag},
 		})
 
 		if err != nil {
@@ -240,15 +249,15 @@ func (r *RDSResource) canManageRDS(uid string, instanceTags map[string]string) (
 func (r *RDSResource) getRDSInstanceDetails(nameTag string) (RDSInstanceDetails, error) {
 	details := RDSInstanceDetails{Tags: make(map[string]string)}
 
-	var instanceTagList []*rds.Tag
+	var instanceTagList []types.Tag
 	resp, err := r.getRDSInstancesByTag(nameTag)
 	if err != nil {
 		return details, err
 	}
 
 	for _, instance := range resp {
-		details.IDs = append(details.IDs, instance.DBInstanceIdentifier)
-		details.ResourceNames = append(details.ResourceNames, instance.DBInstanceArn)
+		details.IDs = append(details.IDs, *instance.DBInstanceIdentifier)
+		details.ResourceNames = append(details.ResourceNames, *instance.DBInstanceArn)
 		instanceTagList = append(instanceTagList, instance.TagList...)
 	}
 
