@@ -64,6 +64,19 @@ var _ = Describe("Booking controller", func() {
 				},
 				Spec: bookingSpec,
 			}
+
+			// Create the resource that bookings will reference
+			resource = &managerv1.Resource{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      BookingResourceName,
+					Namespace: BookingNamespace,
+				},
+				Spec: managerv1.ResourceSpec{
+					Type: "ec2",
+					Tag:  "analytics",
+				},
+			}
+			Expect(k8sClient.Create(ctx, resource)).Should(Succeed())
 		})
 
 		AfterEach(func() {
