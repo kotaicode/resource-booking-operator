@@ -3,23 +3,25 @@
 package clients
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
 const (
 	// Integer representation of the instance status
-	statusPending  int64 = 0
-	statusRunning  int64 = 16
-	statusStopping int64 = 64
-	statusStopped  int64 = 80
+	// statusPending  int32 = 0
+	statusRunning int32 = 16
+	// statusStopping int32 = 64
+	// statusStopped  int32 = 80
 
 	// DefaultTagKey is used to store the tag which marks the instance as managed by the operator
 	defaultTagKey         string = "resource-booking-application"
@@ -41,23 +43,29 @@ type EC2Resource struct {
 }
 
 type instanceDetails struct {
-	IDs  []*string
+	IDs  []string
 	Tags map[string]string
 }
 
-var mySession *session.Session = session.Must(session.NewSessionWithOptions(session.Options{
-	SharedConfigState: session.SharedConfigEnable,
-}))
-var ec2Client *ec2.EC2 = ec2.New(mySession)
+var ec2Client *ec2.Client
+var ctx = context.Background()
 
 func init() {
-	if os.Getenv("AWS_ASSUME_ROLE_ARN") != "" {
-		err := assumeRole(ec2Client, os.Getenv("AWS_ASSUME_ROLE_ARN"))
+	cfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		fmt.Printf("unable to load SDK config: %v\n", err)
+		os.Exit(1)
+	}
+
+	if roleArn := os.Getenv("AWS_ASSUME_ROLE_ARN"); roleArn != "" {
+		cfg, err = assumeRole(cfg, roleArn)
 		if err != nil {
 			fmt.Println(err.Error())
 			os.Exit(1)
 		}
 	}
+
+	ec2Client = ec2.NewFromConfig(cfg)
 }
 
 // Start makes a call through the EC2 client to start resource instances by their IDs.
@@ -72,7 +80,7 @@ func (r *EC2Resource) Start(startInput ResourceStartInput) error {
 		return err
 	}
 
-	_, err = ec2Client.StartInstances(&ec2.StartInstancesInput{
+	_, err = ec2Client.StartInstances(ctx, &ec2.StartInstancesInput{
 		InstanceIds: instances.IDs,
 	})
 	if err != nil {
@@ -98,7 +106,7 @@ func (r *EC2Resource) Stop(stopInput ResourceStopInput) error {
 		return err
 	}
 
-	_, err = ec2Client.StopInstances(&ec2.StopInstancesInput{
+	_, err = ec2Client.StopInstances(ctx, &ec2.StopInstancesInput{
 		InstanceIds: instances.IDs,
 	})
 	if err != nil {
@@ -124,7 +132,7 @@ func (r *EC2Resource) Status() (ResourceStatusOutput, error) {
 		return rst, err
 	}
 
-	resp, err := ec2Client.DescribeInstanceStatus(&ec2.DescribeInstanceStatusInput{
+	resp, err := ec2Client.DescribeInstanceStatus(ctx, &ec2.DescribeInstanceStatusInput{
 		IncludeAllInstances: &includeAll,
 		InstanceIds:         instances.IDs,
 	})
@@ -167,10 +175,10 @@ func (r *EC2Resource) canManage(uid string, instanceTags map[string]string) (boo
 // lock sets locking tags to the resource instances. Tags are:
 // resource-booking-locked-by    - The identifier of the booking that owns the instance at this moment
 // resource-booking-locked-until - Date time until the instance is available again. The endAt of the booking.
-func (r *EC2Resource) lock(uid string, endAt string, instanceIDs []*string) error {
-	_, err := ec2Client.CreateTags(&ec2.CreateTagsInput{
+func (r *EC2Resource) lock(uid string, endAt string, instanceIDs []string) error {
+	_, err := ec2Client.CreateTags(ctx, &ec2.CreateTagsInput{
 		Resources: instanceIDs,
-		Tags: []*ec2.Tag{
+		Tags: []types.Tag{
 			{Key: &lockedByTag, Value: &uid},
 			{Key: &lockedUntilTag, Value: &endAt},
 		},
@@ -184,10 +192,10 @@ func (r *EC2Resource) lock(uid string, endAt string, instanceIDs []*string) erro
 }
 
 // unlock removes the locking tags, freeing the resource to other users.
-func (r *EC2Resource) unlock(instanceIDs []*string) error {
-	_, err := ec2Client.DeleteTags(&ec2.DeleteTagsInput{
+func (r *EC2Resource) unlock(instanceIDs []string) error {
+	_, err := ec2Client.DeleteTags(ctx, &ec2.DeleteTagsInput{
 		Resources: instanceIDs,
-		Tags: []*ec2.Tag{
+		Tags: []types.Tag{
 			{Key: &lockedByTag},
 			{Key: &lockedUntilTag},
 		},
@@ -204,17 +212,17 @@ func (r *EC2Resource) unlock(instanceIDs []*string) error {
 func (r *EC2Resource) getInstanceDetails(nameTag string) (instanceDetails, error) {
 	details := instanceDetails{Tags: make(map[string]string)}
 
-	var instanceTagList []*ec2.Tag
+	var instanceTagList []types.Tag
 
 	// Prepare filters
 	tagKey := fmt.Sprintf("tag:%s", defaultTagKey)
-	nameFilter := &ec2.Filter{
+	nameFilter := types.Filter{
 		Name:   &tagKey,
-		Values: []*string{&nameTag},
+		Values: []string{nameTag},
 	}
 
-	resp, err := ec2Client.DescribeInstances(&ec2.DescribeInstancesInput{
-		Filters: []*ec2.Filter{nameFilter},
+	resp, err := ec2Client.DescribeInstances(ctx, &ec2.DescribeInstancesInput{
+		Filters: []types.Filter{nameFilter},
 	})
 	if err != nil {
 		return details, err
@@ -222,7 +230,7 @@ func (r *EC2Resource) getInstanceDetails(nameTag string) (instanceDetails, error
 
 	for _, reserv := range resp.Reservations {
 		for _, inst := range reserv.Instances {
-			details.IDs = append(details.IDs, inst.InstanceId)
+			details.IDs = append(details.IDs, *inst.InstanceId)
 			instanceTagList = append(instanceTagList, inst.Tags...)
 		}
 	}
@@ -260,13 +268,13 @@ func GetUniqueTags() (map[string]bool, error) {
 	// Prepare filters
 	tagKey := "tag:" + resourceMonitorTagKey
 	tagValue := "true"
-	nameFilter := &ec2.Filter{
+	nameFilter := types.Filter{
 		Name:   &tagKey,
-		Values: []*string{&tagValue},
+		Values: []string{tagValue},
 	}
 	tagMap := make(map[string]bool)
-	resourceBookingInstances, err := ec2Client.DescribeInstances(&ec2.DescribeInstancesInput{
-		Filters: []*ec2.Filter{nameFilter},
+	resourceBookingInstances, err := ec2Client.DescribeInstances(ctx, &ec2.DescribeInstancesInput{
+		Filters: []types.Filter{nameFilter},
 	})
 
 	if err != nil {
@@ -298,22 +306,26 @@ func setDiff(m1, m2 map[string]bool) []string {
 	return slice
 }
 
-// assumeRole assumes a role and returns a new EC2 client with the new credentials
-func assumeRole(cli *ec2.EC2, roleArn string) error {
-	stsClient := sts.New(mySession)
+// assumeRole assumes a role and returns a new AWS config with the assumed role credentials
+func assumeRole(cfg aws.Config, roleArn string) (aws.Config, error) {
+	stsClient := sts.NewFromConfig(cfg)
 
 	params := &sts.AssumeRoleInput{
 		RoleArn:         aws.String(roleArn),
 		RoleSessionName: aws.String("resource-booking-operator"),
 	}
 
-	resp, err := stsClient.AssumeRole(params)
+	resp, err := stsClient.AssumeRole(ctx, params)
 	if err != nil {
-		return err
+		return cfg, err
 	}
 
 	creds := resp.Credentials
-	cli.Config.Credentials = credentials.NewStaticCredentials(*creds.AccessKeyId, *creds.SecretAccessKey, *creds.SessionToken)
+	cfg.Credentials = credentials.NewStaticCredentialsProvider(
+		*creds.AccessKeyId,
+		*creds.SecretAccessKey,
+		*creds.SessionToken,
+	)
 
-	return nil
+	return cfg, nil
 }
